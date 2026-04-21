@@ -46,24 +46,27 @@ body {
 }
 
 .pacman {
-  background-image: url("https://i.pinimg.com/736x/c4/18/71/c4187177d9615dfda8582ad300452730.jpg"); /* 👈 PON AQUÍ TU IMAGEN */
+  background-image: url("illojuan.png");
   background-size: cover;
 }
 
+.ghost {
+  background: red;
+  border-radius: 50%;
+}
 </style>
 </head>
 
 <body>
 
 <h1>🟡 Pac-Man IlloJuan Edition</h1>
-
 <div id="game"></div>
 <p id="msg"></p>
 
 <script>
 const width = 15;
 
-// 1 = pared, 0 = punto
+// 1 = pared, 0 = punto, 2 = vacío
 const map = [
 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
 [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
@@ -81,9 +84,13 @@ const map = [
 const game = document.getElementById("game");
 
 let pacman = { x: 1, y: 1 };
-let score = 0;
 
-// crear mapa
+let ghosts = [
+  { x: 13, y: 1 },
+  { x: 13, y: 9 }
+];
+
+// 🎮 DIBUJAR MAPA
 function draw() {
   game.innerHTML = "";
 
@@ -96,43 +103,58 @@ function draw() {
       if (map[y][x] === 1) {
         cell.classList.add("wall");
       } 
-      else {
+      else if (map[y][x] === 0) {
         cell.classList.add("dot");
       }
 
+      // PACMAN
       if (pacman.x === x && pacman.y === y) {
         cell.classList.add("pacman");
       }
+
+      // FANTASMAS
+      ghosts.forEach(g => {
+        if (g.x === x && g.y === y) {
+          cell.classList.add("ghost");
+        }
+      });
 
       game.appendChild(cell);
     }
   }
 }
 
-// mover jugador
-document.addEventListener("keydown", (e) => {
-  let nx = pacman.x;
-  let ny = pacman.y;
+// 👻 MOVIMIENTO FANTASMAS (random simple)
+function moveGhosts() {
+  ghosts.forEach(g => {
+    const dirs = [
+      {x:0,y:1},
+      {x:0,y:-1},
+      {x:1,y:0},
+      {x:-1,y:0}
+    ];
 
-  if (e.key === "ArrowUp") ny--;
-  if (e.key === "ArrowDown") ny++;
-  if (e.key === "ArrowLeft") nx--;
-  if (e.key === "ArrowRight") nx++;
+    const d = dirs[Math.floor(Math.random() * 4)];
+    const nx = g.x + d.x;
+    const ny = g.y + d.y;
 
-  if (map[ny][nx] !== 1) {
-    pacman.x = nx;
-    pacman.y = ny;
-
-    if (map[ny][nx] === 0) {
-      map[ny][nx] = 2; // punto comido
-      score++;
+    if (map[ny][nx] !== 1) {
+      g.x = nx;
+      g.y = ny;
     }
-  }
+  });
+}
 
-  draw();
-  checkWin();
-});
+// 💀 CHECK GAME OVER
+function checkDeath() {
+  ghosts.forEach(g => {
+    if (g.x === pacman.x && g.y === pacman.y) {
+      document.getElementById("msg").innerText = "💀 GAME OVER";
+    }
+  });
+}
 
+// 🏆 CHECK WIN
 function checkWin() {
   let dots = 0;
 
@@ -148,6 +170,37 @@ function checkWin() {
   }
 }
 
+// 🎮 MOVIMIENTO PACMAN
+document.addEventListener("keydown", (e) => {
+  let nx = pacman.x;
+  let ny = pacman.y;
+
+  if (e.key === "ArrowUp") ny--;
+  if (e.key === "ArrowDown") ny++;
+  if (e.key === "ArrowLeft") nx--;
+  if (e.key === "ArrowRight") nx++;
+
+  if (map[ny][nx] !== 1) {
+    pacman.x = nx;
+    pacman.y = ny;
+
+    if (map[ny][nx] === 0) {
+      map[ny][nx] = 2; // comida
+    }
+  }
+
+  draw();
+  checkWin();
+});
+
+// 🔁 LOOP DE FANTASMAS
+setInterval(() => {
+  moveGhosts();
+  draw();
+  checkDeath();
+}, 300);
+
+// INIT
 draw();
 </script>
 
