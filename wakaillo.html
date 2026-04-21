@@ -98,7 +98,7 @@ function initLevel() {
 
   ghosts = [];
 
-  const ghostCount = 1 + Math.floor(level / 2);
+  const ghostCount = Math.ceil(level / 1.5);
 
   for (let i = 0; i < ghostCount; i++) {
     ghosts.push({
