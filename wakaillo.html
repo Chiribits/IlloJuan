@@ -19,6 +19,8 @@ body {
 }
 
 .cell {
+  width: 24px;
+  height: 24px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -27,8 +29,6 @@ body {
 .wall { background: #1e3a8a; }
 
 .dot { color: white; font-size: 10px; }
-
-.pacman { font-size: 18px; }
 
 .ghost { font-size: 18px; }
 
@@ -46,7 +46,6 @@ h2 { margin: 5px; }
 
 <script>
 let level = 1;
-
 let map;
 let pacman;
 let ghosts;
@@ -55,82 +54,49 @@ let gameOver = false;
 const game = document.getElementById("game");
 const levelText = document.getElementById("levelText");
 
-// 📏 tamaño según nivel
+// 🧑 IlloJuan como imagen
+const illojuanImg = "https://i.imgur.com/4M34hi2.png"; // cámbiala por la que quieras
+
 function getSize(level) {
   if (level === 1) return 13;
   if (level === 2) return 17;
   return 21;
 }
 
-// 🧱 generar mapa según nivel
-function generateMap(size, level) {
-  let m = [];
-
-  for (let y = 0; y < size; y++) {
-    let row = [];
-
-    for (let x = 0; x < size; x++) {
-
-      if (x === 0 || y === 0 || x === size-1 || y === size-1) {
-        row.push(1);
-      } else {
-        let density = 0.06 + level * 0.03;
-        row.push(Math.random() < density ? 1 : 0);
-      }
-    }
-
-    m.push(row);
-  }
-
-  return m;
-}
-
-// 🔎 celda libre
-function freeCell(size) {
-  let x, y;
-  do {
-    x = Math.floor(Math.random() * size);
-    y = Math.floor(Math.random() * size);
-  } while (map[y][x] === 1);
-
-  return {x, y};
-}
-
-// 👻 fantasmas según nivel
-function spawnGhosts(size, level) {
-  let count = level === 1 ? 1 : level === 2 ? 2 : 4;
-
-  let arr = [];
-  for (let i = 0; i < count; i++) {
-    arr.push(freeCell(size));
-  }
-
-  return arr;
-}
-
-// 🚀 iniciar nivel
+// 🧱 inicializar nivel
 function initLevel() {
   const size = getSize(level);
 
-  map = generateMap(size, level);
+  map = [];
+  for (let y = 0; y < size; y++) {
+    let row = [];
+    for (let x = 0; x < size; x++) {
+      if (x === 0 || y === 0 || x === size - 1 || y === size - 1) {
+        row.push(1);
+      } else {
+        row.push(0);
+      }
+    }
+    map.push(row);
+  }
 
-  pacman = freeCell(size);
-  ghosts = spawnGhosts(size, level);
+  pacman = { x: 1, y: 1 };
+
+  ghosts = [
+    { x: size - 2, y: size - 2 }
+  ];
 
   gameOver = false;
-
-  levelText.innerText = "Nivel " + level;
-
-  game.style.gridTemplateColumns = `repeat(${size}, 26px)`;
-  game.style.gridTemplateRows = `repeat(${size}, 26px)`;
-
   document.getElementById("msg").innerText = "";
+  levelText.innerText = "Nivel " + level;
 }
 
-// 🎮 dibujar
+// 🎨 dibujar mapa
 function draw() {
-  const size = map.length;
   game.innerHTML = "";
+
+  const size = map.length;
+  game.style.gridTemplateColumns = `repeat(${size}, 24px)`;
 
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
@@ -143,24 +109,24 @@ function draw() {
         cell.classList.add("wall");
       }
 
-      // 🍒 punto (solo si NO está comido)
+      // 🍒 puntos
       else if (map[y][x] === 0) {
         cell.classList.add("dot");
         cell.innerText = "•";
       }
 
-      // vacío (ya comido)
-      else {
-        cell.innerText = "";
-      }
-
-      // 🟡 pacman
+      // 🟡 IlloJuan (Pacman)
       if (pacman.x === x && pacman.y === y) {
-        cell.classList.add("pacman");
-        cell.innerText = "🟡";
+        const img = document.createElement("img");
+        img.src = illojuanImg;
+        img.style.width = "22px";
+        img.style.height = "22px";
+
+        cell.innerHTML = "";
+        cell.appendChild(img);
       }
 
-      // 👻 fantasmas
+      // 👻 Hacienda
       ghosts.forEach(g => {
         if (g.x === x && g.y === y) {
           cell.classList.add("ghost");
@@ -173,7 +139,14 @@ function draw() {
   }
 }
 
-// 👻 fantasmas
+// 🍒 comer puntos
+function eat() {
+  if (map[pacman.y][pacman.x] === 0) {
+    map[pacman.y][pacman.x] = 2;
+  }
+}
+
+// 👻 mover fantasmas
 function moveGhosts() {
   const size = map.length;
 
@@ -201,13 +174,6 @@ function checkDeath() {
       gameOver = true;
     }
   });
-}
-
-// 🍒 comer
-function eat() {
-  if (map[pacman.y][pacman.x] === 0) {
-    map[pacman.y][pacman.x] = 2;
-  }
 }
 
 // 🏁 win
@@ -251,7 +217,7 @@ document.addEventListener("keydown", e => {
   checkWin();
 });
 
-// loop
+// 🔁 loop
 setInterval(() => {
   if (!gameOver) {
     moveGhosts();
@@ -260,7 +226,7 @@ setInterval(() => {
   }
 }, 180);
 
-// start
+// 🚀 start
 initLevel();
 draw();
 </script>
