@@ -14,19 +14,29 @@ body {
 
 #game {
   display: grid;
-  grid-template-columns: repeat(21, 28px);
-  grid-template-rows: repeat(21, 28px);
+  grid-template-columns: repeat(21, 26px);
+  grid-template-rows: repeat(21, 26px);
   margin: 20px auto;
   width: fit-content;
 }
 
-.cell { width: 28px; height: 28px; }
+.cell {
+  width: 26px;
+  height: 26px;
+  box-sizing: border-box;
+}
 
-.wall { background: #1e3a8a; }
+/* paredes */
+.wall {
+  background: #1e3a8a;
+}
 
+/* puntos */
 .dot {
   background: black;
-  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .dot::after {
@@ -35,24 +45,21 @@ body {
   height: 5px;
   background: white;
   border-radius: 50%;
-  position: absolute;
-  top: 11px;
-  left: 11px;
 }
 
+/* pacman */
 .pacman {
   background-image: url("https://upload.wikimedia.org/wikipedia/commons/8/8b/Logo_de_IlloJuan.png");
   background-size: cover;
   border-radius: 50%;
 }
 
+/* fantasmas hacienda */
 .ghost {
   background-image: url("https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Agencia_Tributaria_logo.svg/2048px-Agencia_Tributaria_logo.svg.png");
   background-size: cover;
   border-radius: 50%;
 }
-
-button { display:none; margin-top:10px; padding:8px; }
 </style>
 </head>
 
@@ -62,16 +69,18 @@ button { display:none; margin-top:10px; padding:8px; }
 
 <div id="game"></div>
 <p id="msg"></p>
-<button id="restartBtn" onclick="resetGame()">🔄 Volver a empezar</button>
 
 <script>
 const N = 21;
 
-let map, pacman, ghosts, gameOver;
+let map = [];
+let pacman;
+let ghosts = [];
+let gameOver = false;
 
 const game = document.getElementById("game");
 
-// 🔧 MAPA SEGURO (SIN BLOQUEAR SPAWN)
+// 🧱 MAPA SEGURO (siempre jugable)
 function generateMap() {
   const m = [];
 
@@ -81,10 +90,8 @@ function generateMap() {
 
       if (x === 0 || y === 0 || x === N-1 || y === N-1) {
         row.push(1);
-      }
-      else {
-        // menos densidad = más jugable
-        row.push(Math.random() < 0.12 ? 1 : 0);
+      } else {
+        row.push(Math.random() < 0.15 ? 1 : 0);
       }
     }
     m.push(row);
@@ -93,8 +100,8 @@ function generateMap() {
   return m;
 }
 
-// 🔧 BUSCAR CELDA LIBRE
-function findFreeCell() {
+// 🔎 encontrar celda libre segura
+function getFreeCell() {
   let x, y;
   do {
     x = Math.floor(Math.random() * N);
@@ -104,25 +111,23 @@ function findFreeCell() {
   return {x, y};
 }
 
-function initState() {
+function init() {
   map = generateMap();
 
-  pacman = findFreeCell();
+  pacman = getFreeCell();
 
   ghosts = [
-    findFreeCell(),
-    findFreeCell(),
-    findFreeCell(),
-    findFreeCell()
+    getFreeCell(),
+    getFreeCell(),
+    getFreeCell(),
+    getFreeCell()
   ];
 
   gameOver = false;
-
   document.getElementById("msg").innerText = "";
-  document.getElementById("restartBtn").style.display = "none";
 }
 
-// 🎮 DIBUJO
+// 🎮 DIBUJO (clave del problema)
 function draw() {
   game.innerHTML = "";
 
@@ -153,7 +158,7 @@ function draw() {
   }
 }
 
-// 👻 FANTASMAS
+// 👻 movimiento simple
 function moveGhosts() {
   ghosts.forEach(g => {
     const dirs = [
@@ -171,32 +176,17 @@ function moveGhosts() {
   });
 }
 
-// 💀 MUERTE
+// 💀 choque
 function checkDeath() {
   ghosts.forEach(g => {
     if (g.x === pacman.x && g.y === pacman.y) {
-      endGame("💀 Hacienda te ha pillado");
+      document.getElementById("msg").innerText = "💀 Hacienda te ha pillado";
+      gameOver = true;
     }
   });
 }
 
-// 🏆 WIN
-function checkWin() {
-  for (let y = 0; y < N; y++) {
-    for (let x = 0; x < N; x++) {
-      if (map[y][x] === 0) return;
-    }
-  }
-  endGame("🎉 IlloJuan ha escapado de Hacienda!");
-}
-
-function endGame(text) {
-  gameOver = true;
-  document.getElementById("msg").innerText = text;
-  document.getElementById("restartBtn").style.display = "inline-block";
-}
-
-// 🎮 CONTROL
+// 🎮 control
 document.addEventListener("keydown", e => {
   if (gameOver) return;
 
@@ -211,32 +201,23 @@ document.addEventListener("keydown", e => {
   if (map[ny] && map[ny][nx] !== 1) {
     pacman.x = nx;
     pacman.y = ny;
-
-    if (map[ny][nx] === 0) map[ny][nx] = 2;
   }
 
   draw();
-  checkWin();
 });
 
-// LOOP
-function loop() {
+// loop
+setInterval(() => {
   if (!gameOver) {
     moveGhosts();
-    draw();
     checkDeath();
+    draw();
   }
-}
+}, 200);
 
-function resetGame() {
-  initState();
-  draw();
-}
-
-// START
-initState();
+// start
+init();
 draw();
-setInterval(loop, 220);
 </script>
 
 </body>
