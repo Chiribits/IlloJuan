@@ -19,6 +19,8 @@ body {
 }
 
 .cell {
+  width: 24px;
+  height: 24px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -27,8 +29,6 @@ body {
 .wall { background: #1e3a8a; }
 
 .dot { color: white; font-size: 10px; }
-
-.pacman { font-size: 18px; }
 
 .ghost { font-size: 18px; }
 
@@ -46,7 +46,6 @@ h2 { margin: 5px; }
 
 <script>
 let level = 1;
-
 let map;
 let pacman;
 let ghosts;
@@ -62,35 +61,56 @@ function getSize(level) {
   return 21;
 }
 
-// 🧱 generar mapa según nivel
-function generateMap(size, level) {
-  let m = [];
+// 🧱 crear nivel
+function initLevel() {
+  const size = getSize(level);
 
+  map = [];
   for (let y = 0; y < size; y++) {
     let row = [];
+    for (let x = 0; x < size; x++) {
+      row.push((x === 0 || y === 0 || x === size - 1 || y === size - 1) ? 1 : 0);
+    }
+    map.push(row);
+  }
 
+  pacman = { x: 1, y: 1 };
+
+  ghosts = [
+    { x: size - 2, y: size - 2 }
+  ];
+
+  gameOver = false;
+  document.getElementById("msg").innerText = "";
+  levelText.innerText = "Nivel " + level;
+}
+
+// 🎨 dibujar
+function draw() {
+  game.innerHTML = "";
+
+  const size = map.length;
+  game.style.gridTemplateColumns = `repeat(${size}, 24px)`;
+
+  for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
 
-      if (x === 0 || y === 0 || x === size-1 || y === size-1) {
-        row.push(1);
+      const cell = document.createElement("div");
+      cell.classList.add("cell");
+
+      // 🧱 pared
+      if (map[y][x] === 1) {
         cell.classList.add("wall");
       }
 
-      // 🍒 punto (solo si NO está comido)
+      // 🍒 puntos
       else if (map[y][x] === 0) {
         cell.classList.add("dot");
         cell.innerText = "•";
       }
 
-      // vacío (ya comido)
-      else {
-        cell.innerText = "";
-      }
-
-      // 🟡 PACMAN → ILLOJUAN (Twitch)
+      // 🟡 ILLOJUAN (Pacman)
       if (pacman.x === x && pacman.y === y) {
-        cell.classList.add("pacman");
-
         const img = document.createElement("img");
         img.src = "https://static-cdn.jtvnw.net/jtv_user_pictures/illojuan-profile_image.png";
         img.style.width = "22px";
@@ -100,7 +120,7 @@ function generateMap(size, level) {
         cell.appendChild(img);
       }
 
-      // 👻 fantasmas
+      // 👻 Hacienda
       ghosts.forEach(g => {
         if (g.x === x && g.y === y) {
           cell.classList.add("ghost");
@@ -113,16 +133,21 @@ function generateMap(size, level) {
   }
 }
 
+// 🍒 comer
+function eat() {
+  if (map[pacman.y][pacman.x] === 0) {
+    map[pacman.y][pacman.x] = 2;
+  }
+}
+
 // 👻 fantasmas
 function moveGhosts() {
-  const size = map.length;
+  const dirs = [
+    {x:0,y:1},{x:0,y:-1},{x:1,y:0},{x:-1,y:0}
+  ];
 
   ghosts.forEach(g => {
-    const dirs = [
-      {x:0,y:1},{x:0,y:-1},{x:1,y:0},{x:-1,y:0}
-    ];
-
-    const d = dirs[Math.floor(Math.random()*4)];
+    const d = dirs[Math.floor(Math.random() * 4)];
     const nx = g.x + d.x;
     const ny = g.y + d.y;
 
@@ -143,13 +168,6 @@ function checkDeath() {
   });
 }
 
-// 🍒 comer
-function eat() {
-  if (map[pacman.y][pacman.x] === 0) {
-    map[pacman.y][pacman.x] = 2;
-  }
-}
-
 // 🏁 win
 function checkWin() {
   for (let y = 0; y < map.length; y++) {
@@ -159,9 +177,7 @@ function checkWin() {
   }
 
   level++;
-
-  document.getElementById("msg").innerText =
-    "🎉 Nivel completado";
+  document.getElementById("msg").innerText = "🎉 Nivel completado";
 
   setTimeout(() => {
     initLevel();
@@ -169,7 +185,7 @@ function checkWin() {
   }, 1000);
 }
 
-// 🎮 control
+// 🎮 controles
 document.addEventListener("keydown", e => {
   if (gameOver) return;
 
@@ -191,7 +207,7 @@ document.addEventListener("keydown", e => {
   checkWin();
 });
 
-// loop
+// 🔁 loop
 setInterval(() => {
   if (!gameOver) {
     moveGhosts();
@@ -200,7 +216,7 @@ setInterval(() => {
   }
 }, 180);
 
-// start
+// 🚀 start
 initLevel();
 draw();
 </script>
