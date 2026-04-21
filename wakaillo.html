@@ -72,12 +72,20 @@ function initLevel() {
 
     for (let x = 0; x < size; x++) {
 
-      // 🧱 paredes exteriores
+      // 🧱 bordes siempre pared
       if (x === 0 || y === 0 || x === size - 1 || y === size - 1) {
         row.push(1);
       }
 
-      // 🍒 puntos dentro del mapa
+      // 🧱 paredes internas (laberinto simple)
+      else if (
+        (x % 4 === 0 && y % 2 === 0) ||   // columnas tipo muro
+        (y % 4 === 0 && x % 3 === 0)      // filas tipo muro
+      ) {
+        row.push(1);
+      }
+
+      // 🍒 puntos
       else {
         row.push(0);
       }
