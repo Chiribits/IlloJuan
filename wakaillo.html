@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Pacman IlloJuan Edition</title>
+
+<style>
+body {
+  background: black;
+  color: white;
+  text-align: center;
+  font-family: Arial;
+}
+
+#game {
+  display: grid;
+  grid-template-columns: repeat(15, 30px);
+  grid-template-rows: repeat(15, 30px);
+  margin: 20px auto;
+  width: fit-content;
+}
+
+.cell {
+  width: 30px;
+  height: 30px;
+}
+
+.wall {
+  background: #1e3a8a;
+}
+
+.dot {
+  background: black;
+  position: relative;
+}
+
+.dot::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 12px;
+  left: 12px;
+}
+
+.pacman {
+  background-image: url("illojuan.png"); /* 👈 PON AQUÍ TU IMAGEN */
+  background-size: cover;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>🟡 Pac-Man IlloJuan Edition</h1>
+
+<div id="game"></div>
+<p id="msg"></p>
+
+<script>
+const width = 15;
+
+// 1 = pared, 0 = punto
+const map = [
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,1,1,1,0,1,1,1,0,1,1,1,0,1],
+[1,0,1,0,0,0,0,0,0,0,0,0,1,0,1],
+[1,0,1,0,1,1,1,1,1,1,1,0,1,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,1,1,1,1,1,1,1,1,1,1,1,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,1,1,1,1,1,1,1,1,1,1,1,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+];
+
+const game = document.getElementById("game");
+
+let pacman = { x: 1, y: 1 };
+let score = 0;
+
+// crear mapa
+function draw() {
+  game.innerHTML = "";
+
+  for (let y = 0; y < map.length; y++) {
+    for (let x = 0; x < map[y].length; x++) {
+
+      const cell = document.createElement("div");
+      cell.classList.add("cell");
+
+      if (map[y][x] === 1) {
+        cell.classList.add("wall");
+      } 
+      else {
+        cell.classList.add("dot");
+      }
+
+      if (pacman.x === x && pacman.y === y) {
+        cell.classList.add("pacman");
+      }
+
+      game.appendChild(cell);
+    }
+  }
+}
+
+// mover jugador
+document.addEventListener("keydown", (e) => {
+  let nx = pacman.x;
+  let ny = pacman.y;
+
+  if (e.key === "ArrowUp") ny--;
+  if (e.key === "ArrowDown") ny++;
+  if (e.key === "ArrowLeft") nx--;
+  if (e.key === "ArrowRight") nx++;
+
+  if (map[ny][nx] !== 1) {
+    pacman.x = nx;
+    pacman.y = ny;
+
+    if (map[ny][nx] === 0) {
+      map[ny][nx] = 2; // punto comido
+      score++;
+    }
+  }
+
+  draw();
+  checkWin();
+});
+
+function checkWin() {
+  let dots = 0;
+
+  for (let row of map) {
+    for (let c of row) {
+      if (c === 0) dots++;
+    }
+  }
+
+  if (dots === 0) {
+    document.getElementById("msg").innerText =
+      "🎉 ¡Has ganado el Pacman de IlloJuan!";
+  }
+}
+
+draw();
+</script>
+
+</body>
+</html>
