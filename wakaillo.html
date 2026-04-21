@@ -61,16 +61,23 @@ function getSize(level) {
   return 21;
 }
 
-// 🧱 crear nivel
+// 🧱 generar mapa con puntos (AHORA SÍ FUNCIONA BIEN)
 function initLevel() {
   const size = getSize(level);
 
   map = [];
+
   for (let y = 0; y < size; y++) {
     let row = [];
+
     for (let x = 0; x < size; x++) {
-      row.push((x === 0 || y === 0 || x === size - 1 || y === size - 1) ? 1 : 0);
+      if (x === 0 || y === 0 || x === size - 1 || y === size - 1) {
+        row.push(1); // pared
+      } else {
+        row.push(0); // punto
+      }
     }
+
     map.push(row);
   }
 
@@ -85,7 +92,7 @@ function initLevel() {
   levelText.innerText = "Nivel " + level;
 }
 
-// 🎨 dibujar
+// 🎨 dibujar mapa
 function draw() {
   game.innerHTML = "";
 
@@ -103,16 +110,21 @@ function draw() {
         cell.classList.add("wall");
       }
 
-      // 🍒 puntos
+      // 🍒 punto
       else if (map[y][x] === 0) {
         cell.classList.add("dot");
         cell.innerText = "•";
       }
 
+      // 🍽️ comer
+      else {
+        cell.innerText = "";
+      }
+
       // 🟡 ILLOJUAN (Pacman)
       if (pacman.x === x && pacman.y === y) {
         const img = document.createElement("img");
-        img.src = "https://static-cdn.jtvnw.net/jtv_user_pictures/illojuan-profile_image.png";
+        img.src = "https://www.image2url.com/r2/default/images/1776789635981-88a1922c-16f5-4859-95b7-537d4a857215.png";
         img.style.width = "22px";
         img.style.height = "22px";
 
@@ -133,7 +145,7 @@ function draw() {
   }
 }
 
-// 🍒 comer
+// 🍒 comer puntos
 function eat() {
   if (map[pacman.y][pacman.x] === 0) {
     map[pacman.y][pacman.x] = 2;
