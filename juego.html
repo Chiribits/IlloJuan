@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Wordle Illojuan</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:sans-serif;background:#0d0d0d;color:#f0f0f0;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:12px 8px}
+h1{font-size:18px;font-weight:700;letter-spacing:3px;border-bottom:2px solid #ff4444;padding-bottom:8px;margin-bottom:4px;width:100%;text-align:center;color:#ff4444}
+#sub{font-size:11px;color:#888;text-align:center;margin-bottom:12px;letter-spacing:1px}
+#msg{height:28px;font-size:13px;font-weight:600;text-align:center;color:#f0f0f0;margin-bottom:8px}
+#grid{display:flex;flex-direction:column;gap:5px;margin-bottom:16px}
+.row{display:flex;gap:5px}
+.cell{width:52px;height:52px;border:2px solid #444;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;text-transform:uppercase;transition:background .3s,border .3s,color .3s;border-radius:4px;color:#f0f0f0}
+.cell.filled{border-color:#888;animation:pop .1s ease}
+.cell.correct{background:#538d4e;border-color:#538d4e;color:#fff}
+.cell.present{background:#b59f3b;border-color:#b59f3b;color:#fff}
+.cell.absent{background:#2a2a2a;border-color:#2a2a2a;color:#777}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
+.shake{animation:shake .4s ease}
+#keyboard{display:flex;flex-direction:column;gap:6px;width:100%;max-width:340px}
+.krow{display:flex;gap:4px;justify-content:center}
+.key{height:48px;min-width:30px;padding:0 4px;border:none;border-radius:6px;background:#2a2a2a;color:#f0f0f0;font-size:13px;font-weight:600;cursor:pointer;flex:1;max-width:36px;transition:background .2s,color .2s}
+.key.wide{max-width:54px;font-size:11px}
+.key.correct{background:#538d4e;color:#fff}
+.key.present{background:#b59f3b;color:#fff}
+.key.absent{background:#1a1a1a;color:#444}
+#hint{font-size:12px;color:#ff4444;text-align:center;min-height:18px;margin-bottom:6px;font-style:italic}
+#new-btn{margin-top:16px;padding:10px 24px;background:#ff4444;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;display:none}
+</style>
+</head>
+<body>
+<h1>WORDLE ILLOJUAN</h1>
+<div id="sub">EDICIÓN PEKEÑO SALTAMONTES</div>
+<div id="msg">Adivina la palabra de 5 letras</div>
+<div id="hint"></div>
+<div id="grid"></div>
+<div id="keyboard"></div>
+<button id="new-btn" onclick="init()">Otra palabra, tio</button>
+
+<script>
+const WORDS = [
+  // jerga / insultos clásicos
+  {w:"PEKES",h:"Lo que llama a sus fans"},
+  {w:"LOCO",h:"Ojo, solo 4 letras... trampa"},
+  {w:"CRACK",h:"Como llama a los buenos jugadores"},
+  {w:"TOCHO",h:"Algo grande o pesado"},
+  {w:"CHONI",h:"Prototipo de persona cutre"},
+  {w:"CUTRE",h:"De mala calidad, vamos"},
+  {w:"MANCO",h:"El que juega fatal"},
+  {w:"SALAO",h:"Gracioso, con sal"},
+  {w:"BIRRA",h:"La bebida favorita del stream"},
+  {w:"FICHA",h:"Elemento del juego"},
+  {w:"TROZO",h:"Pedazo de algo (o de manco)"},
+  {w:"BOCAS",h:"El que habla mucho y hace poco"},
+  {w:"PASTA",h:"El dinero, la guita"},
+  {w:"GRASA",h:"Algo muy cutre o pesado"},
+  {w:"CHULO",h:"Que se cree mucho"},
+  {w:"BUENA",h:"Pues eso, buena"},
+  {w:"FRIKI",h:"Fanático de algo"},
+  {w:"GORDO",h:"Insulto cariñoso de Illojuan"},
+  {w:"TONTO",h:"Otro clásico del vocabulario"},
+  {w:"COLEGA",h:"Solo 6 letras... ojo"},
+  {w:"PISHA",h:"Forma andaluza de decir tío"},
+  {w:"RAROS",h:"Los que hacen cosas extrañas"},
+  {w:"MOLAR",h:"Cuando algo está guay"},
+  {w:"MADRE",h:"Como en '¡madre mía!'"},
+  {w:"TROLO",h:"Insulto clásico del stream"},
+  {w:"ZUMOS",h:"Bebida alternativa a la birra"},
+  {w:"NENES",h:"Así llama a los pekeños a veces"},
+  {w:"JEFES",h:"Así llama a los que molan"},
+  {w:"GANAS",h:"'No tengo ganas' - Illojuan"},
+  {w:"VAMOS",h:"Grito de ánimo en el stream"},
+].filter(e=>e.w.length===5);
+
+const ROWS=6,COLS=5;
+let secret,board,cur,gameOver,keyState;
+
+function init(){
+  const entry=WORDS[Math.floor(Math.random()*WORDS.length)];
+  secret=entry.w;
+  document.getElementById('hint').textContent='Pista: '+entry.h;
+  board=Array.from({length:ROWS},()=>Array(COLS).fill(''));
+  cur={row:0,col:0};
+  gameOver=false;
+  keyState={};
+  document.getElementById('new-btn').style.display='none';
+  document.getElementById('msg').textContent='Adivina la palabra de 5 letras';
+  buildGrid();
+  buildKeyboard();
+}
+
+function buildGrid(){
+  const g=document.getElementById('grid');
+  g.innerHTML='';
+  for(let r=0;r<ROWS;r++){
+    const row=document.createElement('div');
+    row.className='row';row.id='row-'+r;
+    for(let c=0;c<COLS;c++){
+      const cell=document.createElement('div');
+      cell.className='cell';cell.id=`c-${r}-${c}`;
+      row.appendChild(cell);
+    }
+    g.appendChild(row);
+  }
+}
+
+const LAYOUT=[['Q','W','E','R','T','Y','U','I','O','P'],['A','S','D','F','G','H','J','K','L','Ñ'],['↵','Z','X','C','V','B','N','M','⌫']];
+
+function buildKeyboard(){
+  const kb=document.getElementById('keyboard');
+  kb.innerHTML='';
+  LAYOUT.forEach(row=>{
+    const div=document.createElement('div');div.className='krow';
+    row.forEach(k=>{
+      const btn=document.createElement('button');
+      const wide=k==='↵'||k==='⌫';
+      btn.className='key'+(wide?' wide':'');
+      btn.textContent=k;btn.id='key-'+k;
+      btn.addEventListener('click',()=>handleKey(k));
+      div.appendChild(btn);
+    });
+    kb.appendChild(div);
+  });
+}
+
+function handleKey(k){
+  if(gameOver)return;
+  if(k==='⌫'){
+    if(cur.col>0){cur.col--;board[cur.row][cur.col]='';updateCell(cur.row,cur.col,'',false);}
+  } else if(k==='↵'){
+    submitRow();
+  } else if(cur.col<COLS&&/^[A-ZÑ]$/.test(k)){
+    board[cur.row][cur.col]=k;
+    updateCell(cur.row,cur.col,k,true);
+    cur.col++;
+  }
+}
+
+function updateCell(r,c,letter,filled){
+  const cell=document.getElementById(`c-${r}-${c}`);
+  cell.textContent=letter;
+  cell.className='cell'+(filled?' filled':'');
+}
+
+function submitRow(){
+  if(cur.col<COLS){shake();return;}
+  const guess=board[cur.row].join('');
+  const result=score(guess,secret);
+  result.forEach((res,c)=>{
+    setTimeout(()=>{
+      const cell=document.getElementById(`c-${cur.row}-${c}`);
+      cell.classList.add(res);
+      updateKeyState(board[cur.row][c],res);
+    },c*150);
+  });
+  setTimeout(()=>{
+    if(guess===secret){
+      const msgs=['¡Ahí estuvo, crack!','¡Pekeño listo!','¡Maquina!','¡Estuvo fino, tio!'];
+      document.getElementById('msg').textContent=msgs[Math.floor(Math.random()*msgs.length)];
+      gameOver=true;document.getElementById('new-btn').style.display='inline-block';
+    } else if(cur.row===ROWS-1){
+      document.getElementById('msg').textContent='Era '+secret+', manco 😂';
+      gameOver=true;document.getElementById('new-btn').style.display='inline-block';
+    } else {
+      cur.row++;cur.col=0;
+    }
+  },COLS*150+200);
+}
+
+function score(guess,secret){
+  const res=Array(COLS).fill('absent');
+  const sArr=secret.split('');
+  const used=Array(COLS).fill(false);
+  guess.split('').forEach((l,i)=>{if(l===sArr[i]){res[i]='correct';used[i]=true;}});
+  guess.split('').forEach((l,i)=>{
+    if(res[i]==='correct')return;
+    const j=sArr.findIndex((s,idx)=>s===l&&!used[idx]);
+    if(j>=0){res[i]='present';used[j]=true;}
+  });
+  return res;
+}
+
+function updateKeyState(letter,state){
+  const priority={correct:3,present:2,absent:1};
+  if(!keyState[letter]||priority[state]>priority[keyState[letter]]){
+    keyState[letter]=state;
+    const btn=document.getElementById('key-'+letter);
+    if(btn){
+      const wide=['↵','⌫'].includes(letter);
+      btn.className='key'+(wide?' wide':'')+' '+state;
+    }
+  }
+}
+
+function shake(){
+  const row=document.getElementById('row-'+cur.row);
+  row.classList.add('shake');
+  setTimeout(()=>row.classList.remove('shake'),400);
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter')handleKey('↵');
+  else if(e.key==='Backspace')handleKey('⌫');
+  else{const k=e.key.toUpperCase();if(/^[A-ZÑ]$/.test(k))handleKey(k);}
+});
+
+init();
+</script>
+</body>
+</html>
