@@ -42,65 +42,43 @@ h1{font-size:18px;font-weight:700;letter-spacing:3px;border-bottom:2px solid #ff
 
 <script>
 const WORDS = [
-  // jerga / insultos clásicos
-  {w:"PECHA",h:"Significa “mucho” o “una gran cantidad"},
-  {w:"LOCO",h:"Ojo, solo 4 letras... trampa"},
-  {w:"CRACK",h:"Como llama a los buenos jugadores"},
-  {w:"TOCHO",h:"Algo grande o pesado"},
-  {w:"CHONI",h:"Prototipo de persona cutre"},
-  {w:"CUTRE",h:"De mala calidad, vamos"},
-  {w:"MANCO",h:"El que juega fatal"},
-  {w:"SALAO",h:"Gracioso, con sal"},
-  {w:"BIRRA",h:"La bebida favorita del stream"},
-  {w:"FICHA",h:"Elemento del juego"},
-  {w:"TROZO",h:"Pedazo de algo (o de manco)"},
-  {w:"BOCAS",h:"El que habla mucho y hace poco"},
-  {w:"PASTA",h:"El dinero, la guita"},
-  {w:"GRASA",h:"Algo muy cutre o pesado"},
-  {w:"CHULO",h:"Que se cree mucho"},
-  {w:"BUENA",h:"Pues eso, buena"},
-  {w:"FRIKI",h:"Fanático de algo"},
-  {w:"GORDO",h:"Insulto cariñoso de Illojuan"},
-  {w:"TONTO",h:"Otro clásico del vocabulario"},
-  {w:"COLEGA",h:"Solo 6 letras... ojo"},
-  {w:"PISHA",h:"Forma andaluza de decir tío"},
-  {w:"RAROS",h:"Los que hacen cosas extrañas"},
-  {w:"MOLAR",h:"Cuando algo está guay"},
-  {w:"MADRE",h:"Como en '¡madre mía!'"},
-  {w:"TROLO",h:"Insulto clásico del stream"},
-  {w:"ZUMOS",h:"Bebida alternativa a la birra"},
-  {w:"LITERAL",h:"Se usa para enfatizar que algo es exactamente así, sin exageración"},
-  {w:"JEFES",h:"Así llama a los que molan"},
-  {w:"VAMOS",h:"Grito de ánimo en el stream"},
-  {w:"QUIYO",h:"Forma andaluza de llamar a alguien, tipo 'tío'"},
-  {w:"PAPEO",h:"Comida en general"},
-  {w:"SALSEO",h:"Cotilleo o drama"},
-{w:"CLIP",h:"Momento gracioso del directo"},
-{w:"STREAM",h:"El directo en Twitch"},
-{w:"CHAT",h:"La gente del directo"},
-  {w:"BANEO",h:"Expulsión del chat"},
-{w:"SPAM",h:"Mensajes repetidos"},
-  {w:"LLORO",h:"Reacción exagerada de risa o drama"},
-{w:"HYPE",h:"Expectación máxima"},
-{w:"TILT",h:"Cuando se enfada jugando"},
-{w:"RAGE",h:"Enfado fuerte en juegos"},
-{w:"GG",h:"'Good game', reconocimiento"},
-{w:"NOOB",h:"Principiante o malo"},
-{w:"PRO",h:"Muy bueno jugando"},
-{w:"META",h:"Lo más eficiente del juego"},
-{w:"NERF",h:"Cuando bajan algo de poder"},
-{w:"BUFF",h:"Cuando mejoran algo"},
-  {w:"CLUTCH",h:"Jugada decisiva"},
-  {w:"DIOH",h:"Exclamación tipo 'Dios' muy andaluza"},
-  {w:"FLAMA",h:"Algo muy bueno o muy top, muy usado en streams"},
-{w:"FLIPAO",h:"Alguien que se sorprende o exagera mucho"},
-{w:"FLIPAR",h:"Quedarse loco con algo"},
-{w:"COHONES",h:"Exclamación andaluza tipo '¡con lo fuerte que es!'"},
-{w:"HOSTIA",h:"Exclamación típica de sorpresa o impacto"},
-  {w:"ENPLAN",h:"Muletilla para explicar algo o matizarlo"},
-  {w:"TOGUAPO",h:"Algo extremadamente bueno o bonito"},
-  {w:"RANDOM",h:"Algo sin sentido o inesperado"},
-{w:"BROMA",h:"Cuando el chat se pasa de troll"},
+{w:"PECHA",h:"Significa mucho"},
+{w:"CRACK",h:"Jugador bueno"},
+{w:"TOCHO",h:"Algo grande"},
+{w:"CHONI",h:"Persona cutre"},
+{w:"CUTRE",h:"De mala calidad"},
+{w:"MANCO",h:"Juega fatal"},
+{w:"SALAO",h:"Gracioso"},
+{w:"BIRRA",h:"Cerveza"},
+{w:"FICHA",h:"Elemento"},
+{w:"TROZO",h:"Pedazo"},
+{w:"BOCAS",h:"Habla mucho"},
+{w:"PASTA",h:"Dinero"},
+{w:"GRASA",h:"Cutre"},
+{w:"CHULO",h:"Creído"},
+{w:"FRIKI",h:"Fanático"},
+{w:"GORDO",h:"Insulto típico"},
+{w:"TONTO",h:"Clásico"},
+{w:"PISHA",h:"Andaluz"},
+{w:"MOLAR",h:"Estar guay"},
+{w:"JEFES",h:"Los que molan"},
+{w:"VAMOS",h:"Ánimo"},
+{w:"CHAT",h:"Directo"},
+{w:"BANEO",h:"Expulsión"},
+{w:"SPAM",h:"Repetición"},
+{w:"LLORO",h:"Drama"},
+{w:"HYPE",h:"Expectación"},
+{w:"TILT",h:"Enfado"},
+{w:"RAGE",h:"Rabia"},
+{w:"NOOB",h:"Principiante"},
+{w:"PRO",h:"Bueno"},
+{w:"META",h:"Eficiente"},
+{w:"NERF",h:"Debuff"},
+{w:"BUFF",h:"Mejora"},
+{w:"CLUTCH",h:"Jugada clave"},
+{w:"FLAMA",h:"Muy bueno"},
+{w:"FLIPAR",h:"Alucinar"},
+{w:"HOSTIA",h:"Sorpresa"}
 ].filter(e=>e.w.length===5);
 
 const ROWS=6,COLS=5;
@@ -141,13 +119,14 @@ function buildKeyboard(){
   const kb=document.getElementById('keyboard');
   kb.innerHTML='';
   LAYOUT.forEach(row=>{
-    const div=document.createElement('div');div.className='krow';
+    const div=document.createElement('div');
+    div.className='krow';
     row.forEach(k=>{
       const btn=document.createElement('button');
-      const wide=k==='↵'||k==='⌫';
-      btn.className='key'+(wide?' wide':'');
-      btn.textContent=k;btn.id='key-'+k;
-      btn.addEventListener('click',()=>handleKey(k));
+      btn.className='key'+((k==='↵'||k==='⌫')?' wide':'');
+      btn.textContent=k;
+      btn.id='key-'+k;
+      btn.onclick=()=>handleKey(k);
       div.appendChild(btn);
     });
     kb.appendChild(div);
@@ -156,70 +135,92 @@ function buildKeyboard(){
 
 function handleKey(k){
   if(gameOver)return;
+
   if(k==='⌫'){
-    if(cur.col>0){cur.col--;board[cur.row][cur.col]='';updateCell(cur.row,cur.col,'',false);}
-  } else if(k==='↵'){
+    if(cur.col>0){
+      cur.col--;
+      board[cur.row][cur.col]='';
+      updateCell(cur.row,cur.col,'',false);
+    }
+  }
+  else if(k==='↵'){
     submitRow();
-  } else if(cur.col<COLS&&/^[A-ZÑ]$/.test(k)){
+  }
+  else if(cur.col<COLS){
     board[cur.row][cur.col]=k;
     updateCell(cur.row,cur.col,k,true);
     cur.col++;
   }
 }
 
-function updateCell(r,c,letter,filled){
+function updateCell(r,c,l,f){
   const cell=document.getElementById(`c-${r}-${c}`);
-  cell.textContent=letter;
-  cell.className='cell'+(filled?' filled':'');
+  cell.textContent=l;
+  cell.className='cell'+(f?' filled':'');
 }
 
 function submitRow(){
   if(cur.col<COLS){shake();return;}
+
   const guess=board[cur.row].join('');
   const result=score(guess,secret);
+
   result.forEach((res,c)=>{
     setTimeout(()=>{
       const cell=document.getElementById(`c-${cur.row}-${c}`);
       cell.classList.add(res);
-      updateKeyState(board[cur.row][c],res);
-    },c*150);
+      updateKey(board[cur.row][c],res);
+    },c*120);
   });
+
   setTimeout(()=>{
     if(guess===secret){
-      const msgs=['¡Ahí estuvo, crack!','¡Pekeño listo!','¡Maquina!','¡Estuvo fino, tio!'];
-      document.getElementById('msg').textContent=msgs[Math.floor(Math.random()*msgs.length)];
-      gameOver=true;document.getElementById('new-btn').style.display='inline-block';
-    } else if(cur.row===ROWS-1){
-      document.getElementById('msg').textContent='Era '+secret+', manco 😂';
-      gameOver=true;document.getElementById('new-btn').style.display='inline-block';
-    } else {
+      document.getElementById('msg').textContent='¡Has ganado!';
+      gameOver=true;
+      document.getElementById('new-btn').style.display='block';
+    }else if(cur.row===ROWS-1){
+      document.getElementById('msg').textContent='Era '+secret;
+      gameOver=true;
+      document.getElementById('new-btn').style.display='block';
+    }else{
       cur.row++;cur.col=0;
     }
-  },COLS*150+200);
+  },700);
 }
 
-function score(guess,secret){
+function score(guess, secret){
   const res=Array(COLS).fill('absent');
-  const sArr=secret.split('');
-  const used=Array(COLS).fill(false);
-  guess.split('').forEach((l,i)=>{if(l===sArr[i]){res[i]='correct';used[i]=true;}});
-  guess.split('').forEach((l,i)=>{
-    if(res[i]==='correct')return;
-    const j=sArr.findIndex((s,idx)=>s===l&&!used[idx]);
-    if(j>=0){res[i]='present';used[j]=true;}
-  });
+  const g=guess.split('');
+  const s=secret.split('');
+  const usedS=Array(COLS).fill(false);
+
+  for(let i=0;i<COLS;i++){
+    if(g[i]===s[i]){
+      res[i]='correct';
+      usedS[i]=true;
+    }
+  }
+
+  for(let i=0;i<COLS;i++){
+    if(res[i]==='correct')continue;
+    for(let j=0;j<COLS;j++){
+      if(!usedS[j] && g[i]===s[j]){
+        res[i]='present';
+        usedS[j]=true;
+        break;
+      }
+    }
+  }
+
   return res;
 }
 
-function updateKeyState(letter,state){
+function updateKey(l,state){
   const priority={correct:3,present:2,absent:1};
-  if(!keyState[letter]||priority[state]>priority[keyState[letter]]){
-    keyState[letter]=state;
-    const btn=document.getElementById('key-'+letter);
-    if(btn){
-      const wide=['↵','⌫'].includes(letter);
-      btn.className='key'+(wide?' wide':'')+' '+state;
-    }
+  if(!keyState[l]||priority[state]>priority[keyState[l]]){
+    keyState[l]=state;
+    const btn=document.getElementById('key-'+l);
+    if(btn)btn.className='key '+state;
   }
 }
 
@@ -232,7 +233,7 @@ function shake(){
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter')handleKey('↵');
   else if(e.key==='Backspace')handleKey('⌫');
-  else{const k=e.key.toUpperCase();if(/^[A-ZÑ]$/.test(k))handleKey(k);}
+  else handleKey(e.key.toUpperCase());
 });
 
 init();
