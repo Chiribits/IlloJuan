@@ -6,14 +6,12 @@
 
 <style>
 body{
-  background:#fff5f8;
+  background:#fff0f6;
   font-family:Arial;
   text-align:center;
 }
 
-h1{
-  color:#d63384;
-}
+h1{color:#d63384;}
 
 button{
   padding:10px;
@@ -46,16 +44,13 @@ button{
   display:none;
 }
 
-.flipped img{
-  display:block;
-}
+.flipped img{display:block;}
 </style>
-
 </head>
 
 <body>
 
-<h1>👑 Memory de Princesas</h1>
+<h1>👑 Memory Princesas Disney</h1>
 
 <button onclick="start(10)">🟢 Fácil</button>
 <button onclick="start(20)">🟡 Medio</button>
@@ -67,14 +62,19 @@ button{
 
 <script>
 
-// 👑 nombres para buscar en Wikipedia
-const princesses = [
-"Cinderella","Ariel","Belle","Jasmine","Snow White",
-"Rapunzel","Elsa","Anna","Mulan","Tiana","Moana",
-"Merida","Aurora","Pocahontas"
+// 👑 lista grande de personajes (para asegurar 40)
+const names = [
+"Snow White","Cinderella","Aurora","Ariel","Belle","Jasmine",
+"Pocahontas","Mulan","Tiana","Rapunzel","Merida","Moana","Raya",
+"Elsa","Anna","Esmeralda","Megara","Giselle","Jane Porter",
+"Vanellope von Schweetz","Kida Atlantis","Eilonwy","Anastasia",
+"Thumbelina","Odette","Sofia the First","Elena of Avalor",
+"Asha Wish","Mirabel Madrigal","Isabela Madrigal","Luisa Madrigal",
+"Moana","Rapunzel","Belle","Ariel","Cinderella","Aurora",
+"Mulan","Tiana","Jasmine","Pocahontas","Merida"
 ];
 
-// 🔍 obtener imagen de Wikipedia
+// 🔍 Wikipedia API
 async function getImage(name){
   try{
     const res = await fetch(
@@ -90,31 +90,22 @@ async function getImage(name){
   return null;
 }
 
-// 👑 conseguir imágenes hasta llenar
+// 👑 cargar hasta n imágenes reales
 async function getPrincesses(n){
 
-  let images = new Set();
+  let results = await Promise.all(names.map(n => getImage(n)));
 
-  while(images.size < n){
-    for(let name of princesses){
+  let imgs = results.filter(x => x !== null);
 
-      let img = await getImage(name);
-
-      if(img) images.add(img);
-
-      if(images.size >= n) break;
-    }
-
-    // fallback si faltan
-    if(images.size < n){
-      images.add(`https://picsum.photos/seed/princess${images.size}/100`);
-    }
+  // si faltan, relleno con imágenes random (último recurso)
+  while(imgs.length < n){
+    imgs.push(`https://picsum.photos/seed/princess${imgs.length}/100`);
   }
 
-  return Array.from(images).slice(0,n);
+  return imgs.slice(0,n);
 }
 
-// 🎮 iniciar juego
+// 🎮 juego
 async function start(level){
 
   const game=document.getElementById("game");
