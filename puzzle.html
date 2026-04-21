@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Puzzle de Streamers</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background: #111;
+  color: #fff;
+}
+
+h1 { margin-top: 20px; }
+
+.controls {
+  margin: 15px;
+}
+
+select, button {
+  padding: 10px;
+  font-size: 16px;
+  margin: 5px;
+}
+
+#game {
+  display: grid;
+  margin: 20px auto;
+  gap: 2px;
+  width: 500px;
+  height: 500px;
+}
+
+.tile {
+  background-size: 500px 500px;
+  cursor: pointer;
+  border: 1px solid #222;
+}
+
+#message {
+  margin-top: 10px;
+  font-size: 18px;
+  color: #0f0;
+}
+</style>
+</head>
+<body>
+
+<h1>🎮 Puzzle de Streamers</h1>
+
+<div class="controls">
+  <label>Dificultad:</label>
+  <select id="difficulty">
+    <option value="3">Fácil (3x3)</option>
+    <option value="4">Media (4x4)</option>
+    <option value="5">Difícil (5x5)</option>
+  </select>
+
+  <button onclick="startGame()">Iniciar</button>
+</div>
+
+<div id="game"></div>
+<div id="message"></div>
+
+<script>
+const images = [
+  "https://i.ytimg.com/vi/gWza-tPb0Iw/maxresdefault.jpg",
+  "https://s1.dmcdn.net/v/Ye1Fy1ep2Zc7jZ90Y/x720",
+  "https://i.pinimg.com/originals/b2/4a/46/b24a46007de2f32bd60ebe8c51b579a4.jpg"
+];
+
+let size = 3;
+let tiles = [];
+let firstTile = null;
+let currentImage = "";
+
+function startGame() {
+  const game = document.getElementById("game");
+  const message = document.getElementById("message");
+  message.innerText = "";
+
+  size = parseInt(document.getElementById("difficulty").value);
+
+  game.innerHTML = "";
+  game.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+
+  currentImage = images[Math.floor(Math.random() * images.length)];
+
+  tiles = [];
+
+  for (let i = 0; i < size * size; i++) {
+    const tile = document.createElement("div");
+    tile.classList.add("tile");
+
+    const row = Math.floor(i / size);
+    const col = i % size;
+
+    tile.style.width = "100%";
+    tile.style.height = "100%";
+
+    tile.style.backgroundImage = `url(${currentImage})`;
+    tile.style.backgroundSize = `${size * 100}%`;
+    tile.style.backgroundPosition = `${(col / (size - 1)) * 100}% ${(row / (size - 1)) * 100}%`;
+
+    tile.dataset.index = i;
+
+    tiles.push(tile);
+    game.appendChild(tile);
+
+    tile.addEventListener("click", () => selectTile(tile));
+  }
+
+  shuffle();
+}
+
+function shuffle() {
+  const game = document.getElementById("game");
+  for (let i = game.children.length; i >= 0; i--) {
+    game.appendChild(game.children[Math.random() * i | 0]);
+  }
+}
+
+function selectTile(tile) {
+  if (!firstTile) {
+    firstTile = tile;
+    tile.style.outline = "2px solid yellow";
+  } else {
+    swapTiles(firstTile, tile);
+    firstTile.style.outline = "none";
+    firstTile = null;
+    checkWin();
+  }
+}
+
+function swapTiles(t1, t2) {
+  const parent = t1.parentNode;
+  const next = t2.nextSibling;
+
+  parent.insertBefore(t1, next);
+  parent.insertBefore(t2, t1);
+}
+
+function checkWin() {
+  const game = document.getElementById("game");
+  const tiles = [...game.children];
+
+  const isSolved = tiles.every((tile, i) => parseInt(tile.dataset.index) === i);
+
+  if (isSolved) {
+    document.getElementById("message").innerText = "🎉 ¡Puzzle completado!";
+  }
+}
+</script>
+
+</body>
+</html>
