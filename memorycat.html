@@ -2,17 +2,17 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Memory de Gatitos 🐱</title>
+<title>Memory Gatitos PRO 🐱</title>
 
 <style>
 body{
-  background:#ffeef2;
+  background:#fff0f5;
   font-family:Arial;
   text-align:center;
 }
 
 h1{
-  color:#ff6b81;
+  color:#ff4d6d;
 }
 
 button{
@@ -33,7 +33,7 @@ button{
 .card{
   width:90px;
   height:90px;
-  background:#ffb6c1;
+  background:#ffc0cb;
   border-radius:12px;
   overflow:hidden;
   cursor:pointer;
@@ -55,7 +55,7 @@ button{
 
 <body>
 
-<h1>🐱 Memory de Gatitos</h1>
+<h1>🐱 Memory de Caras de Gatitos</h1>
 
 <button onclick="start(10)">🟢 Fácil</button>
 <button onclick="start(20)">🟡 Medio</button>
@@ -67,35 +67,38 @@ button{
 
 <script>
 
-// 🐱 obtener gatos desde API
-async function getCats(n){
-  try{
-    const res = await fetch(`https://api.thecatapi.com/v1/images/search?limit=${n}`);
-    const data = await res.json();
+// 🐱 obtener SOLO caras y rellenar hasta n
+async function getCatFaces(n){
 
-    return data.map(cat => cat.url);
+  let images = new Set();
 
-  }catch(e){
-    alert("Error cargando gatitos 😢");
-    return [];
+  while(images.size < n){
+    try{
+      const res = await fetch(
+        `https://api.thecatapi.com/v1/images/search?limit=50&category_ids=5`
+      );
+      const data = await res.json();
+
+      data.forEach(cat=>{
+        if(cat.url) images.add(cat.url);
+      });
+
+    }catch(e){}
   }
+
+  return Array.from(images).slice(0,n);
 }
 
 // 🎮 iniciar juego
 async function start(level){
 
-  const game = document.getElementById("game");
-  const status = document.getElementById("status");
+  const game=document.getElementById("game");
+  const status=document.getElementById("status");
 
   game.innerHTML="";
   status.innerText="Cargando gatitos 🐱...";
 
-  const cats = await getCats(level);
-
-  if(cats.length < level){
-    status.innerText="No se pudieron cargar suficientes gatos 😢";
-    return;
-  }
+  const cats = await getCatFaces(level);
 
   status.innerText="¡Encuentra las parejas!";
 
@@ -105,7 +108,8 @@ async function start(level){
   let cards=[...cats,...cats];
   cards.sort(()=>Math.random()-0.5);
 
-  game.style.gridTemplateColumns = `repeat(${Math.ceil(Math.sqrt(cards.length))},90px)`;
+  game.style.gridTemplateColumns =
+    `repeat(${Math.ceil(Math.sqrt(cards.length))},90px)`;
 
   cards.forEach(src=>{
 
