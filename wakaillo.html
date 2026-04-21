@@ -28,31 +28,20 @@ body {
   align-items: center;
 }
 
-.wall {
-  background: #1e3a8a;
-}
+.wall { background: #1e3a8a; }
 
-/* puntos */
-.dot {
-  color: white;
-  font-size: 10px;
-}
+.dot { color: white; font-size: 10px; }
 
-/* PACMAN (VISIBLE SIEMPRE) */
-.pacman {
-  font-size: 18px;
-}
+.pacman { font-size: 18px; }
 
-/* FANTASMAS */
-.ghost {
-  font-size: 18px;
-}
+.ghost { font-size: 18px; }
 </style>
 </head>
 
 <body>
 
 <h1>🟡 Pac-Man IlloJuan vs Hacienda</h1>
+<h2 id="levelText">Nivel 1</h2>
 
 <div id="game"></div>
 <p id="msg"></p>
@@ -64,21 +53,25 @@ let map;
 let pacman;
 let ghosts;
 let gameOver = false;
+let level = 1;
 
 const game = document.getElementById("game");
+const levelText = document.getElementById("levelText");
 
-// 🧱 MAPA ALEATORIO SIMPLE PERO JUGABLE
-function generateMap() {
+// 🧱 MAPA MÁS DIFÍCIL POR NIVEL
+function generateMap(level) {
   let m = [];
 
   for (let y = 0; y < N; y++) {
     let row = [];
 
     for (let x = 0; x < N; x++) {
+
       if (x === 0 || y === 0 || x === N-1 || y === N-1) {
         row.push(1);
       } else {
-        row.push(Math.random() < 0.12 ? 1 : 0);
+        let density = 0.08 + level * 0.03;
+        row.push(Math.random() < density ? 1 : 0);
       }
     }
 
@@ -88,7 +81,7 @@ function generateMap() {
   return m;
 }
 
-// 🔎 celda libre segura
+// 🔎 celda libre
 function freeCell() {
   let x, y;
   do {
@@ -99,23 +92,35 @@ function freeCell() {
   return {x, y};
 }
 
-function init() {
-  map = generateMap();
+// 👻 fantasmas según nivel
+function spawnGhosts(level) {
+  let count = 1;
+
+  if (level >= 2) count = 2;
+  if (level >= 3) count = 4;
+
+  let arr = [];
+
+  for (let i = 0; i < count; i++) {
+    arr.push(freeCell());
+  }
+
+  return arr;
+}
+
+function initLevel() {
+  map = generateMap(level);
 
   pacman = freeCell();
-
-  ghosts = [
-    freeCell(),
-    freeCell(),
-    freeCell(),
-    freeCell()
-  ];
+  ghosts = spawnGhosts(level);
 
   gameOver = false;
+
+  levelText.innerText = "Nivel " + level;
   document.getElementById("msg").innerText = "";
 }
 
-// 🎮 DIBUJO (FIX IMPORTANTE)
+// 🎮 DIBUJAR
 function draw() {
   game.innerHTML = "";
 
@@ -125,24 +130,18 @@ function draw() {
       const cell = document.createElement("div");
       cell.classList.add("cell");
 
-      // paredes
       if (map[y][x] === 1) {
         cell.classList.add("wall");
-      }
-
-      // punto (solo si no se ha comido)
-      else if (map[y][x] === 0) {
+      } else {
         cell.classList.add("dot");
         cell.innerText = "•";
       }
 
-      // PACMAN (👨‍🟡 IlloJuan emoji fallback)
       if (pacman.x === x && pacman.y === y) {
         cell.classList.add("pacman");
         cell.innerText = "🟡";
       }
 
-      // FANTASMAS HACIENDA
       ghosts.forEach(g => {
         if (g.x === x && g.y === y) {
           cell.classList.add("ghost");
@@ -155,7 +154,7 @@ function draw() {
   }
 }
 
-// 👻 MOVIMIENTO
+// 👻 movimiento fantasmas
 function moveGhosts() {
   ghosts.forEach(g => {
     const dirs = [
@@ -173,7 +172,7 @@ function moveGhosts() {
   });
 }
 
-// 💀 MUERTE
+// 💀 muerte
 function checkDeath() {
   ghosts.forEach(g => {
     if (g.x === pacman.x && g.y === pacman.y) {
@@ -183,14 +182,33 @@ function checkDeath() {
   });
 }
 
-// 🟡 COMER PUNTOS (FIX PRINCIPAL)
+// 🍒 comer puntos
 function eat() {
   if (map[pacman.y][pacman.x] === 0) {
     map[pacman.y][pacman.x] = 2;
   }
 }
 
-// 🎮 MOVIMIENTO
+// 🏁 comprobar nivel completado
+function checkWin() {
+  for (let y = 0; y < N; y++) {
+    for (let x = 0; x < N; x++) {
+      if (map[y][x] === 0) return;
+    }
+  }
+
+  level++;
+
+  document.getElementById("msg").innerText =
+    "🎉 Nivel completado! Subiendo dificultad...";
+
+  setTimeout(() => {
+    initLevel();
+    draw();
+  }, 1000);
+}
+
+// 🎮 control
 document.addEventListener("keydown", e => {
   if (gameOver) return;
 
@@ -209,6 +227,7 @@ document.addEventListener("keydown", e => {
   }
 
   draw();
+  checkWin();
 });
 
 // loop
@@ -218,10 +237,10 @@ setInterval(() => {
     checkDeath();
     draw();
   }
-}, 200);
+}, 180);
 
 // start
-init();
+initLevel();
 draw();
 </script>
 
