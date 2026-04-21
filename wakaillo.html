@@ -71,10 +71,15 @@ function initLevel() {
     let row = [];
 
     for (let x = 0; x < size; x++) {
+
+      // 🧱 paredes exteriores
       if (x === 0 || y === 0 || x === size - 1 || y === size - 1) {
-        row.push(1); // pared
-      } else {
-        row.push(0); // punto
+        row.push(1);
+      }
+
+      // 🍒 puntos dentro del mapa
+      else {
+        row.push(0);
       }
     }
 
