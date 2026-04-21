@@ -35,6 +35,10 @@ button, select {
   padding: 8px;
   margin: 5px;
 }
+
+#restartBtn {
+  display: none;
+}
 </style>
 </head>
 
@@ -50,6 +54,7 @@ button, select {
   </select>
 
   <button onclick="start()">Iniciar</button>
+  <button id="restartBtn" onclick="start()">Volver a empezar</button>
 </div>
 
 <div id="board"></div>
@@ -59,6 +64,7 @@ button, select {
 let size = 3;
 let tiles = [];
 let first = null;
+let locked = false;
 
 function start() {
   const board = document.getElementById("board");
@@ -70,6 +76,11 @@ function start() {
   board.style.gridTemplateRows = `repeat(${size}, 1fr)`;
 
   tiles = [];
+  first = null;
+  locked = false;
+
+  document.getElementById("msg").innerText = "";
+  document.getElementById("restartBtn").style.display = "none";
 
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
@@ -93,7 +104,6 @@ function start() {
   }
 
   shuffle(board);
-  document.getElementById("msg").innerText = "";
 }
 
 function shuffle(board) {
@@ -103,6 +113,8 @@ function shuffle(board) {
 }
 
 function select(tile) {
+  if (locked) return;
+
   if (!first) {
     first = tile;
     tile.style.outline = "2px solid yellow";
@@ -142,6 +154,8 @@ function checkWin() {
 
   if (win) {
     document.getElementById("msg").innerText = "🎉 ¡Has ganado!";
+    locked = true;
+    document.getElementById("restartBtn").style.display = "inline-block";
   }
 }
 
