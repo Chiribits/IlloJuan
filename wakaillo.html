@@ -14,15 +14,11 @@ body {
 
 #game {
   display: grid;
-  grid-template-columns: repeat(21, 26px);
-  grid-template-rows: repeat(21, 26px);
   margin: 20px auto;
   width: fit-content;
 }
 
 .cell {
-  width: 26px;
-  height: 26px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -35,6 +31,8 @@ body {
 .pacman { font-size: 18px; }
 
 .ghost { font-size: 18px; }
+
+h2 { margin: 5px; }
 </style>
 </head>
 
@@ -47,30 +45,36 @@ body {
 <p id="msg"></p>
 
 <script>
-const N = 21;
+let level = 1;
 
 let map;
 let pacman;
 let ghosts;
 let gameOver = false;
-let level = 1;
 
 const game = document.getElementById("game");
 const levelText = document.getElementById("levelText");
 
-// 🧱 MAPA MÁS DIFÍCIL POR NIVEL
-function generateMap(level) {
+// 📏 tamaño según nivel
+function getSize(level) {
+  if (level === 1) return 13;
+  if (level === 2) return 17;
+  return 21;
+}
+
+// 🧱 generar mapa según nivel
+function generateMap(size, level) {
   let m = [];
 
-  for (let y = 0; y < N; y++) {
+  for (let y = 0; y < size; y++) {
     let row = [];
 
-    for (let x = 0; x < N; x++) {
+    for (let x = 0; x < size; x++) {
 
-      if (x === 0 || y === 0 || x === N-1 || y === N-1) {
+      if (x === 0 || y === 0 || x === size-1 || y === size-1) {
         row.push(1);
       } else {
-        let density = 0.08 + level * 0.03;
+        let density = 0.06 + level * 0.03;
         row.push(Math.random() < density ? 1 : 0);
       }
     }
@@ -82,50 +86,54 @@ function generateMap(level) {
 }
 
 // 🔎 celda libre
-function freeCell() {
+function freeCell(size) {
   let x, y;
   do {
-    x = Math.floor(Math.random() * N);
-    y = Math.floor(Math.random() * N);
+    x = Math.floor(Math.random() * size);
+    y = Math.floor(Math.random() * size);
   } while (map[y][x] === 1);
 
   return {x, y};
 }
 
 // 👻 fantasmas según nivel
-function spawnGhosts(level) {
-  let count = 1;
-
-  if (level >= 2) count = 2;
-  if (level >= 3) count = 4;
+function spawnGhosts(size, level) {
+  let count = level === 1 ? 1 : level === 2 ? 2 : 4;
 
   let arr = [];
-
   for (let i = 0; i < count; i++) {
-    arr.push(freeCell());
+    arr.push(freeCell(size));
   }
 
   return arr;
 }
 
+// 🚀 iniciar nivel
 function initLevel() {
-  map = generateMap(level);
+  const size = getSize(level);
 
-  pacman = freeCell();
-  ghosts = spawnGhosts(level);
+  map = generateMap(size, level);
+
+  pacman = freeCell(size);
+  ghosts = spawnGhosts(size, level);
 
   gameOver = false;
 
   levelText.innerText = "Nivel " + level;
+
+  game.style.gridTemplateColumns = `repeat(${size}, 26px)`;
+  game.style.gridTemplateRows = `repeat(${size}, 26px)`;
+
   document.getElementById("msg").innerText = "";
 }
 
-// 🎮 DIBUJAR
+// 🎮 dibujar
 function draw() {
+  const size = map.length;
   game.innerHTML = "";
 
-  for (let y = 0; y < N; y++) {
-    for (let x = 0; x < N; x++) {
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
 
       const cell = document.createElement("div");
       cell.classList.add("cell");
@@ -154,8 +162,10 @@ function draw() {
   }
 }
 
-// 👻 movimiento fantasmas
+// 👻 fantasmas
 function moveGhosts() {
+  const size = map.length;
+
   ghosts.forEach(g => {
     const dirs = [
       {x:0,y:1},{x:0,y:-1},{x:1,y:0},{x:-1,y:0}
@@ -182,17 +192,17 @@ function checkDeath() {
   });
 }
 
-// 🍒 comer puntos
+// 🍒 comer
 function eat() {
   if (map[pacman.y][pacman.x] === 0) {
     map[pacman.y][pacman.x] = 2;
   }
 }
 
-// 🏁 comprobar nivel completado
+// 🏁 win
 function checkWin() {
-  for (let y = 0; y < N; y++) {
-    for (let x = 0; x < N; x++) {
+  for (let y = 0; y < map.length; y++) {
+    for (let x = 0; x < map.length; x++) {
       if (map[y][x] === 0) return;
     }
   }
@@ -200,7 +210,7 @@ function checkWin() {
   level++;
 
   document.getElementById("msg").innerText =
-    "🎉 Nivel completado! Subiendo dificultad...";
+    "🎉 Nivel completado";
 
   setTimeout(() => {
     initLevel();
