@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Pacman IlloJuan Edition</title>
+<title>Pacman IlloJuan vs Hacienda</title>
 
 <style>
 body {
@@ -23,42 +23,29 @@ body {
 .cell {
   width: 26px;
   height: 26px;
-  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-/* paredes */
 .wall {
   background: #1e3a8a;
 }
 
 /* puntos */
 .dot {
-  background: black;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  color: white;
+  font-size: 10px;
 }
 
-.dot::after {
-  content: "";
-  width: 5px;
-  height: 5px;
-  background: white;
-  border-radius: 50%;
-}
-
-/* pacman */
+/* PACMAN (VISIBLE SIEMPRE) */
 .pacman {
-  background-image: url("https://upload.wikimedia.org/wikipedia/commons/8/8b/Logo_de_IlloJuan.png");
-  background-size: cover;
-  border-radius: 50%;
+  font-size: 18px;
 }
 
-/* fantasmas hacienda */
+/* FANTASMAS */
 .ghost {
-  background-image: url("https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Agencia_Tributaria_logo.svg/2048px-Agencia_Tributaria_logo.svg.png");
-  background-size: cover;
-  border-radius: 50%;
+  font-size: 18px;
 }
 </style>
 </head>
@@ -73,35 +60,36 @@ body {
 <script>
 const N = 21;
 
-let map = [];
+let map;
 let pacman;
-let ghosts = [];
+let ghosts;
 let gameOver = false;
 
 const game = document.getElementById("game");
 
-// 🧱 MAPA SEGURO (siempre jugable)
+// 🧱 MAPA ALEATORIO SIMPLE PERO JUGABLE
 function generateMap() {
-  const m = [];
+  let m = [];
 
   for (let y = 0; y < N; y++) {
-    const row = [];
-    for (let x = 0; x < N; x++) {
+    let row = [];
 
+    for (let x = 0; x < N; x++) {
       if (x === 0 || y === 0 || x === N-1 || y === N-1) {
         row.push(1);
       } else {
-        row.push(Math.random() < 0.15 ? 1 : 0);
+        row.push(Math.random() < 0.12 ? 1 : 0);
       }
     }
+
     m.push(row);
   }
 
   return m;
 }
 
-// 🔎 encontrar celda libre segura
-function getFreeCell() {
+// 🔎 celda libre segura
+function freeCell() {
   let x, y;
   do {
     x = Math.floor(Math.random() * N);
@@ -114,20 +102,20 @@ function getFreeCell() {
 function init() {
   map = generateMap();
 
-  pacman = getFreeCell();
+  pacman = freeCell();
 
   ghosts = [
-    getFreeCell(),
-    getFreeCell(),
-    getFreeCell(),
-    getFreeCell()
+    freeCell(),
+    freeCell(),
+    freeCell(),
+    freeCell()
   ];
 
   gameOver = false;
   document.getElementById("msg").innerText = "";
 }
 
-// 🎮 DIBUJO (clave del problema)
+// 🎮 DIBUJO (FIX IMPORTANTE)
 function draw() {
   game.innerHTML = "";
 
@@ -137,19 +125,28 @@ function draw() {
       const cell = document.createElement("div");
       cell.classList.add("cell");
 
+      // paredes
       if (map[y][x] === 1) {
         cell.classList.add("wall");
-      } else {
-        cell.classList.add("dot");
       }
 
+      // punto (solo si no se ha comido)
+      else if (map[y][x] === 0) {
+        cell.classList.add("dot");
+        cell.innerText = "•";
+      }
+
+      // PACMAN (👨‍🟡 IlloJuan emoji fallback)
       if (pacman.x === x && pacman.y === y) {
         cell.classList.add("pacman");
+        cell.innerText = "🟡";
       }
 
+      // FANTASMAS HACIENDA
       ghosts.forEach(g => {
         if (g.x === x && g.y === y) {
           cell.classList.add("ghost");
+          cell.innerText = "🏛️";
         }
       });
 
@@ -158,7 +155,7 @@ function draw() {
   }
 }
 
-// 👻 movimiento simple
+// 👻 MOVIMIENTO
 function moveGhosts() {
   ghosts.forEach(g => {
     const dirs = [
@@ -176,7 +173,7 @@ function moveGhosts() {
   });
 }
 
-// 💀 choque
+// 💀 MUERTE
 function checkDeath() {
   ghosts.forEach(g => {
     if (g.x === pacman.x && g.y === pacman.y) {
@@ -186,7 +183,14 @@ function checkDeath() {
   });
 }
 
-// 🎮 control
+// 🟡 COMER PUNTOS (FIX PRINCIPAL)
+function eat() {
+  if (map[pacman.y][pacman.x] === 0) {
+    map[pacman.y][pacman.x] = 2;
+  }
+}
+
+// 🎮 MOVIMIENTO
 document.addEventListener("keydown", e => {
   if (gameOver) return;
 
@@ -201,6 +205,7 @@ document.addEventListener("keydown", e => {
   if (map[ny] && map[ny][nx] !== 1) {
     pacman.x = nx;
     pacman.y = ny;
+    eat();
   }
 
   draw();
