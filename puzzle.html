@@ -1,156 +1,151 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <title>Puzzle Streamers</title>
+
 <style>
 body {
   background: #111;
   color: white;
-  text-align: center;
   font-family: Arial;
+  text-align: center;
 }
 
-canvas {
-  margin-top: 15px;
-  border: 2px solid #444;
+#board {
+  margin: 20px auto;
+  display: grid;
+  gap: 2px;
+  width: 500px;
+  height: 500px;
+}
+
+.tile {
+  background-image: url("https://via.placeholder.com/500x500.png?text=Streamer");
+  background-size: 500px 500px;
   cursor: pointer;
+  border: 1px solid #000;
 }
 
-select, button {
+.controls {
+  margin-top: 10px;
+}
+
+button, select {
   padding: 8px;
   margin: 5px;
 }
 </style>
 </head>
+
 <body>
 
 <h1>🧩 Puzzle de Streamers</h1>
 
-<select id="size">
-  <option value="3">Fácil (3x3)</option>
-  <option value="4">Media (4x4)</option>
-  <option value="5">Difícil (5x5)</option>
-</select>
+<div class="controls">
+  <select id="size">
+    <option value="3">Fácil (3x3)</option>
+    <option value="4">Media (4x4)</option>
+    <option value="5">Difícil (5x5)</option>
+  </select>
 
-<button onclick="initGame()">Iniciar</button>
+  <button onclick="start()">Iniciar</button>
+</div>
 
-<canvas id="game"></canvas>
+<div id="board"></div>
 <p id="msg"></p>
 
 <script>
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-
-const img = new Image();
-
-// 👇 imagen de ejemplo (puedes cambiarla por streamer real)
-img.src = "https://via.placeholder.com/500x500.png?text=Streamer";
-
 let size = 3;
-let pieceSize;
-let pieces = [];
-let selected = null;
-let ready = false;
+let tiles = [];
+let first = null;
 
-img.onload = () => {
-  ready = true;
-  initGame(); // 🔥 importante: iniciar SOLO cuando la imagen carga
-};
-
-function initGame() {
-  if (!ready) return;
+function start() {
+  const board = document.getElementById("board");
+  board.innerHTML = "";
 
   size = parseInt(document.getElementById("size").value);
 
-  canvas.width = 500;
-  canvas.height = 500;
+  board.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+  board.style.gridTemplateRows = `repeat(${size}, 1fr)`;
 
-  pieceSize = canvas.width / size;
-
-  pieces = [];
+  tiles = [];
 
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
-      pieces.push({
-        correctX: x,
-        correctY: y
-      });
+
+      const tile = document.createElement("div");
+      tile.classList.add("tile");
+
+      tile.style.width = "100%";
+      tile.style.height = "100%";
+
+      tile.dataset.correct = y + "-" + x;
+
+      tile.style.backgroundPosition =
+        `${(x / (size - 1)) * 100}% ${(y / (size - 1)) * 100}%`;
+
+      tile.addEventListener("click", () => select(tile));
+
+      tiles.push(tile);
+      board.appendChild(tile);
     }
   }
 
-  shuffle(pieces);
-  draw();
+  shuffle(board);
   document.getElementById("msg").innerText = "";
 }
 
-function shuffle(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+function shuffle(board) {
+  for (let i = board.children.length; i >= 0; i--) {
+    board.appendChild(board.children[Math.random() * i | 0]);
   }
 }
 
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  pieces.forEach((p, i) => {
-    const x = (i % size) * pieceSize;
-    const y = Math.floor(i / size) * pieceSize;
-
-    ctx.drawImage(
-      img,
-      p.correctX * pieceSize,
-      p.correctY * pieceSize,
-      pieceSize,
-      pieceSize,
-      x,
-      y,
-      pieceSize,
-      pieceSize
-    );
-
-    ctx.strokeStyle = "#000";
-    ctx.strokeRect(x, y, pieceSize, pieceSize);
-  });
-}
-
-canvas.addEventListener("click", (e) => {
-  const rect = canvas.getBoundingClientRect();
-  const x = Math.floor((e.clientX - rect.left) / pieceSize);
-  const y = Math.floor((e.clientY - rect.top) / pieceSize);
-
-  const index = y * size + x;
-
-  if (selected === null) {
-    selected = index;
+function select(tile) {
+  if (!first) {
+    first = tile;
+    tile.style.outline = "2px solid yellow";
   } else {
-    [pieces[selected], pieces[index]] = [pieces[index], pieces[selected]];
-    selected = null;
+    swap(first, tile);
+    first.style.outline = "none";
+    first = null;
 
-    draw();
     checkWin();
   }
-});
+}
+
+function swap(a, b) {
+  const parent = a.parentNode;
+  const next = b.nextSibling;
+
+  parent.insertBefore(a, next);
+  parent.insertBefore(b, a);
+}
 
 function checkWin() {
+  const board = document.getElementById("board");
+  const current = [...board.children];
+
   let win = true;
 
-  for (let i = 0; i < pieces.length; i++) {
-    const p = pieces[i];
-    const x = i % size;
+  current.forEach((tile, i) => {
     const y = Math.floor(i / size);
+    const x = i % size;
 
-    if (p.correctX !== x || p.correctY !== y) {
+    const correct = y + "-" + x;
+
+    if (tile.dataset.correct !== correct) {
       win = false;
-      break;
     }
-  }
+  });
 
   if (win) {
     document.getElementById("msg").innerText = "🎉 ¡Has ganado!";
   }
 }
+
+start();
 </script>
 
 </body>
