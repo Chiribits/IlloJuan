@@ -42,7 +42,7 @@ button{margin:5px;padding:10px;}
 
 <body>
 
-<h1>🎮 Memory con caras reales (Wikipedia)</h1>
+<h1>🎮 Memory Wikipedia (FIX 40)</h1>
 
 <button onclick="start(10)">🟢 Fácil</button>
 <button onclick="start(20)">🟡 Medio</button>
@@ -54,29 +54,37 @@ button{margin:5px;padding:10px;}
 
 <script>
 
-// 👇 nombres reales para buscar en Wikipedia
+// 🔥 LISTA GRANDE (para asegurar 40)
 const names = [
 "Ibai Llanos","AuronPlay","El Rubius","TheGrefg","ElXokas","IlloJuan",
 "MrBeast","KSI","PewDiePie","Charli D'Amelio","Addison Rae","Khaby Lame",
 "Logan Paul","Emma Chamberlain","Markiplier","Ludwig Ahgren",
-"Vegetta777","Willyrex","Cristinini","JuanSGuarnizo"
+"Vegetta777","Willyrex","Cristinini","JuanSGuarnizo",
+"Ninja","Shroud","Pokimane","Dream","Sapnap","TommyInnit",
+"Quackity","Amouranth","HasanAbi","xQc","Adin Ross","Kai Cenat",
+"Speed","iShowSpeed","Valkyrae","Sykkuno","Disguised Toast",
+"NickMercs","TimTheTatman","DrLupo","Summit1g","Tfue",
+"GeorgeNotFound","Ranboo","Corpse Husband","Bella Poarch",
+"Zach King","Brent Rivera","Noah Beck","Dixie D'Amelio",
+"Lil Huddy","James Charles","Jeffree Star","David Dobrik",
+"Jake Paul","Liza Koshy","Lele Pons","Rudy Mancuso"
 ];
 
-// 🔍 obtener imagen desde Wikipedia
+// 🔍 Wikipedia API
 async function getWikiImage(name){
   try{
     const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`);
     const data = await res.json();
 
     if(data.thumbnail){
-      return data.thumbnail.source;
+      return {name, img: data.thumbnail.source};
     }
   }catch(e){}
 
   return null;
 }
 
-// 🎮 iniciar juego
+// 🚀 INICIO
 async function start(level){
 
   const game=document.getElementById("game");
@@ -85,23 +93,25 @@ async function start(level){
   game.innerHTML="";
   status.innerText="Cargando imágenes...";
 
-  let selected=[];
-  let lock=false;
+  // ⚡ CARGA EN PARALELO
+  const results = await Promise.all(names.map(n => getWikiImage(n)));
 
-  // 🔄 cargar imágenes
-  let people=[];
+  // filtrar válidos
+  let people = results.filter(x => x !== null);
 
-  for(let name of names){
-    let img = await getWikiImage(name);
-
-    if(img){
-      people.push({name,img});
-    }
-
-    if(people.length >= level) break;
+  // asegurar cantidad
+  if(people.length < level){
+    status.innerText = "No hay suficientes imágenes disponibles 😢";
+    return;
   }
 
+  // cortar al nivel
+  people = people.slice(0, level);
+
   status.innerText="¡Empieza!";
+
+  let selected=[];
+  let lock=false;
 
   let cards=[...people,...people];
   cards.sort(()=>Math.random()-0.5);
@@ -125,6 +135,7 @@ async function start(level){
 
       if(selected.length===2){
         lock=true;
+
         setTimeout(()=>{
           const[a,b]=selected;
 
@@ -135,7 +146,7 @@ async function start(level){
 
           selected=[];
           lock=false;
-        },700);
+        },600);
       }
     };
 
