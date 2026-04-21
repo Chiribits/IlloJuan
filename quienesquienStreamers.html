@@ -2,130 +2,145 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Memory Influencers PRO</title>
+<title>Memory Wikipedia PRO</title>
 
 <style>
-body {
-  font-family: Arial;
-  text-align: center;
-  background: #0b0b0b;
-  color: white;
+body{
+  background:#111;
+  color:white;
+  text-align:center;
+  font-family:Arial;
 }
 
-button {
-  padding: 10px;
-  margin: 5px;
-  cursor: pointer;
+button{margin:5px;padding:10px;}
+
+.grid{
+  display:grid;
+  gap:6px;
+  justify-content:center;
+  margin-top:20px;
 }
 
-.grid {
-  display: grid;
-  gap: 6px;
-  justify-content: center;
-  margin-top: 20px;
+.card{
+  width:80px;
+  height:80px;
+  background:#333;
+  border-radius:8px;
+  overflow:hidden;
+  cursor:pointer;
 }
 
-.card {
-  width: 70px;
-  height: 70px;
-  background: #333;
-  border-radius: 8px;
-  overflow: hidden;
-  cursor: pointer;
+.card img{
+  width:100%;
+  height:100%;
+  display:none;
 }
 
-.card img {
-  width: 100%;
-  height: 100%;
-  display: none;
-}
-
-.flipped img {
-  display: block;
-}
+.flipped img{display:block;}
 </style>
 </head>
 
 <body>
 
-<h1>🎮 Memory PRO Influencers</h1>
+<h1>🎮 Memory con caras reales (Wikipedia)</h1>
 
 <button onclick="start(10)">🟢 Fácil</button>
 <button onclick="start(20)">🟡 Medio</button>
 <button onclick="start(40)">🔴 PRO</button>
 
+<p id="status">Pulsa un nivel</p>
+
 <div class="grid" id="game"></div>
 
 <script>
 
-// 🎯 20 influencers reales (duplicados = 40 cartas)
-const people = [
-  "ibai","auron","rubius","grefg","xokas","illojuan","cristinini","juans",
-  "vegetta","willyrex","mrbeast","ksi","loganpaul","pewdiepie","markiplier",
-  "emma","charli","addison","domelipa","khaby"
+// 👇 nombres reales para buscar en Wikipedia
+const names = [
+"Ibai Llanos","AuronPlay","El Rubius","TheGrefg","ElXokas","IlloJuan",
+"MrBeast","KSI","PewDiePie","Charli D'Amelio","Addison Rae","Khaby Lame",
+"Logan Paul","Emma Chamberlain","Markiplier","Ludwig Ahgren",
+"Vegetta777","Willyrex","Cristinini","JuanSGuarnizo"
 ];
 
-// 🖼️ imágenes seguras (fallback genérico estilo avatar)
-function getImg(name){
-  return `https://picsum.photos/seed/${name}/100`;
+// 🔍 obtener imagen desde Wikipedia
+async function getWikiImage(name){
+  try{
+    const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`);
+    const data = await res.json();
+
+    if(data.thumbnail){
+      return data.thumbnail.source;
+    }
+  }catch(e){}
+
+  return null;
 }
 
-let selected = [];
-let lock = false;
+// 🎮 iniciar juego
+async function start(level){
 
-function start(level){
+  const game=document.getElementById("game");
+  const status=document.getElementById("status");
 
-  const game = document.getElementById("game");
-  game.innerHTML = "";
+  game.innerHTML="";
+  status.innerText="Cargando imágenes...";
 
-  selected = [];
-  lock = false;
+  let selected=[];
+  let lock=false;
 
-  let chosen = people.slice(0, level);
+  // 🔄 cargar imágenes
+  let people=[];
 
-  let cards = [...chosen, ...chosen];
+  for(let name of names){
+    let img = await getWikiImage(name);
 
-  cards.sort(() => 0.5 - Math.random());
+    if(img){
+      people.push({name,img});
+    }
 
-  let size = Math.sqrt(cards.length);
-  game.style.gridTemplateColumns = `repeat(${Math.ceil(size)}, 70px)`;
+    if(people.length >= level) break;
+  }
 
-  cards.forEach(name => {
+  status.innerText="¡Empieza!";
 
-    const card = document.createElement("div");
+  let cards=[...people,...people];
+  cards.sort(()=>Math.random()-0.5);
+
+  game.style.gridTemplateColumns=`repeat(${Math.ceil(Math.sqrt(cards.length))},80px)`;
+
+  cards.forEach(p=>{
+    const card=document.createElement("div");
     card.classList.add("card");
 
-    const img = document.createElement("img");
-    img.src = getImg(name);
+    const img=document.createElement("img");
+    img.src=p.img;
 
     card.appendChild(img);
 
-    card.addEventListener("click", () => {
-      if(lock || card.classList.contains("flipped")) return;
+    card.onclick=()=>{
+      if(lock||card.classList.contains("flipped")) return;
 
       card.classList.add("flipped");
       selected.push(card);
 
-      if(selected.length === 2){
-        lock = true;
-        setTimeout(check, 600);
+      if(selected.length===2){
+        lock=true;
+        setTimeout(()=>{
+          const[a,b]=selected;
+
+          if(a.querySelector("img").src !== b.querySelector("img").src){
+            a.classList.remove("flipped");
+            b.classList.remove("flipped");
+          }
+
+          selected=[];
+          lock=false;
+        },700);
       }
-    });
+    };
 
     game.appendChild(card);
   });
-}
-
-function check(){
-  const [a,b] = selected;
-
-  if(a.querySelector("img").src !== b.querySelector("img").src){
-    a.classList.remove("flipped");
-    b.classList.remove("flipped");
-  }
-
-  selected = [];
-  lock = false;
 }
 
 </script>
