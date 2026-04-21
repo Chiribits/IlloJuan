@@ -138,18 +138,29 @@ function draw() {
       const cell = document.createElement("div");
       cell.classList.add("cell");
 
+      // 🧱 pared
       if (map[y][x] === 1) {
         cell.classList.add("wall");
-      } else {
+      }
+
+      // 🍒 punto (solo si NO está comido)
+      else if (map[y][x] === 0) {
         cell.classList.add("dot");
         cell.innerText = "•";
       }
 
+      // vacío (ya comido)
+      else {
+        cell.innerText = "";
+      }
+
+      // 🟡 pacman
       if (pacman.x === x && pacman.y === y) {
         cell.classList.add("pacman");
         cell.innerText = "🟡";
       }
 
+      // 👻 fantasmas
       ghosts.forEach(g => {
         if (g.x === x && g.y === y) {
           cell.classList.add("ghost");
