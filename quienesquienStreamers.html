@@ -2,118 +2,113 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Memory Streamers - Niveles</title>
+<title>Memory Influencers PRO</title>
 
 <style>
-  body {
-    font-family: Arial;
-    text-align: center;
-    background: #111;
-    color: white;
-  }
+body {
+  font-family: Arial;
+  text-align: center;
+  background: #0b0b0b;
+  color: white;
+}
 
-  button {
-    margin: 5px;
-    padding: 10px 15px;
-    cursor: pointer;
-    border: none;
-    border-radius: 8px;
-  }
+button {
+  padding: 10px;
+  margin: 5px;
+  cursor: pointer;
+}
 
-  .grid {
-    display: grid;
-    gap: 8px;
-    justify-content: center;
-    margin-top: 20px;
-  }
+.grid {
+  display: grid;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 20px;
+}
 
-  .card {
-    width: 70px;
-    height: 70px;
-    background: #333;
-    cursor: pointer;
-    border-radius: 10px;
-    overflow: hidden;
-  }
+.card {
+  width: 70px;
+  height: 70px;
+  background: #333;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+}
 
-  .card img {
-    width: 100%;
-    height: 100%;
-    display: none;
-  }
+.card img {
+  width: 100%;
+  height: 100%;
+  display: none;
+}
 
-  .flipped img {
-    display: block;
-  }
+.flipped img {
+  display: block;
+}
 </style>
-
 </head>
 
 <body>
 
-<h1>🎮 Memory de Streamers</h1>
-<p>Elige dificultad:</p>
+<h1>🎮 Memory PRO Influencers</h1>
 
-<button onclick="startGame(10)">🟢 Fácil (10)</button>
-<button onclick="startGame(20)">🟡 Medio (20)</button>
-<button onclick="startGame(40)">🔴 Pro (40)</button>
+<button onclick="start(10)">🟢 Fácil</button>
+<button onclick="start(20)">🟡 Medio</button>
+<button onclick="start(40)">🔴 PRO</button>
 
 <div class="grid" id="game"></div>
 
 <script>
 
-const allStreamers = [
-  "ibai","auronplay","thegrefg","rubius","elmariana","willyrex",
-  "vegetta","lolito","xokas","illojuan","byviruzz","fargan",
-  "ibai2","auron2","grefg2","rubius2","streamer17","streamer18",
-  "streamer19","streamer20","streamer21","streamer22","streamer23",
-  "streamer24","streamer25","streamer26","streamer27","streamer28",
-  "streamer29","streamer30","streamer31","streamer32","streamer33",
-  "streamer34","streamer35","streamer36","streamer37","streamer38",
-  "streamer39","streamer40"
+// 🎯 20 influencers reales (duplicados = 40 cartas)
+const people = [
+  "ibai","auron","rubius","grefg","xokas","illojuan","cristinini","juans",
+  "vegetta","willyrex","mrbeast","ksi","loganpaul","pewdiepie","markiplier",
+  "emma","charli","addison","domelipa","khaby"
 ];
 
-let selected = [];
-let locked = false;
+// 🖼️ imágenes seguras (fallback genérico estilo avatar)
+function getImg(name){
+  return `https://picsum.photos/seed/${name}/100`;
+}
 
-function startGame(level) {
+let selected = [];
+let lock = false;
+
+function start(level){
+
   const game = document.getElementById("game");
   game.innerHTML = "";
 
   selected = [];
-  locked = false;
+  lock = false;
 
-  // 🎯 elegir streamers según nivel
-  let chosen = allStreamers.slice(0, level);
+  let chosen = people.slice(0, level);
 
-  // duplicar para parejas
   let cards = [...chosen, ...chosen];
 
-  // mezclar
   cards.sort(() => 0.5 - Math.random());
 
-  // ajustar grid
-  let cols = Math.sqrt(cards.length);
-  game.style.gridTemplateColumns = `repeat(${Math.ceil(cols)}, 70px)`;
+  let size = Math.sqrt(cards.length);
+  game.style.gridTemplateColumns = `repeat(${Math.ceil(size)}, 70px)`;
 
   cards.forEach(name => {
+
     const card = document.createElement("div");
     card.classList.add("card");
 
     const img = document.createElement("img");
-    img.src = `https://picsum.photos/seed/${name}/100`;
+    img.src = getImg(name);
 
     card.appendChild(img);
 
     card.addEventListener("click", () => {
-      if (locked || card.classList.contains("flipped")) return;
+      if(lock || card.classList.contains("flipped")) return;
 
       card.classList.add("flipped");
       selected.push(card);
 
-      if (selected.length === 2) {
-        locked = true;
-        setTimeout(checkMatch, 700);
+      if(selected.length === 2){
+        lock = true;
+        setTimeout(check, 600);
       }
     });
 
@@ -121,19 +116,16 @@ function startGame(level) {
   });
 }
 
-function checkMatch() {
-  const [c1, c2] = selected;
+function check(){
+  const [a,b] = selected;
 
-  const img1 = c1.querySelector("img").src;
-  const img2 = c2.querySelector("img").src;
-
-  if (img1 !== img2) {
-    c1.classList.remove("flipped");
-    c2.classList.remove("flipped");
+  if(a.querySelector("img").src !== b.querySelector("img").src){
+    a.classList.remove("flipped");
+    b.classList.remove("flipped");
   }
 
   selected = [];
-  locked = false;
+  lock = false;
 }
 
 </script>
