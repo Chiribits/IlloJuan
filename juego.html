@@ -11,9 +11,9 @@ body{font-family:sans-serif;background:#0d0d0d;color:#f0f0f0;display:flex;flex-d
 
 h1{font-size:18px;font-weight:700;letter-spacing:3px;border-bottom:2px solid #ff4444;padding-bottom:8px;margin-bottom:4px;width:100%;text-align:center;color:#ff4444}
 
-#sub{font-size:11px;color:#888;text-align:center;margin-bottom:12px;letter-spacing:1px}
-#msg{height:28px;font-size:13px;font-weight:600;text-align:center;color:#f0f0f0;margin-bottom:8px}
-#hint{font-size:12px;color:#ff4444;text-align:center;min-height:18px;margin-bottom:6px;font-style:italic}
+#sub{font-size:11px;color:#888;text-align:center;margin-bottom:12px}
+#msg{height:28px;font-size:13px;font-weight:600;text-align:center;margin-bottom:8px}
+#hint{font-size:12px;color:#ff4444;text-align:center;margin-bottom:6px;font-style:italic}
 
 #grid{display:flex;flex-direction:column;gap:5px;margin-bottom:16px}
 .row{display:flex;gap:5px}
@@ -28,34 +28,23 @@ border-radius:4px;
 color:#f0f0f0;
 }
 
-.cell.filled{border-color:#888}
-
 .cell.correct{background:#538d4e;border-color:#538d4e;color:#fff}
 .cell.present{background:#b59f3b;border-color:#b59f3b;color:#fff}
 .cell.absent{background:#2a2a2a;border-color:#2a2a2a;color:#777}
-
-@keyframes shake{
-0%,100%{transform:translateX(0)}
-20%,60%{transform:translateX(-4px)}
-40%,80%{transform:translateX(4px)}
-}
-.shake{animation:shake .4s ease}
 
 #keyboard{display:flex;flex-direction:column;gap:6px;width:100%;max-width:340px}
 .krow{display:flex;gap:4px;justify-content:center}
 
 .key{
 height:48px;min-width:30px;
-padding:0 4px;
 border:none;border-radius:6px;
 background:#2a2a2a;
 color:#f0f0f0;
-font-size:13px;font-weight:600;
+font-weight:600;
 cursor:pointer;
-flex:1;max-width:36px;
+flex:1;
+max-width:36px;
 }
-
-.key.wide{max-width:54px;font-size:11px}
 
 .key.correct{background:#538d4e}
 .key.present{background:#b59f3b}
@@ -73,6 +62,13 @@ font-weight:600;
 cursor:pointer;
 display:none;
 }
+
+@keyframes shake{
+0%,100%{transform:translateX(0)}
+20%,60%{transform:translateX(-4px)}
+40%,80%{transform:translateX(4px)}
+}
+.shake{animation:shake .4s ease}
 </style>
 </head>
 
@@ -81,7 +77,7 @@ display:none;
 <h1>WORDLE ILLOJUAN</h1>
 <div id="sub">EDICIÓN PEKEÑO SALTAMONTES</div>
 
-<div id="msg">Adivina la palabra de 5 letras</div>
+<div id="msg">Adivina la palabra</div>
 <div id="hint"></div>
 
 <div id="grid"></div>
@@ -120,7 +116,7 @@ const WORDS = [
 {w:"LITERAL",h:"Se usa para enfatizar que algo es exactamente así, sin exageración"},
 {w:"JEFES",h:"Así llama a los que molan"},
 {w:"VAMOS",h:"Grito de ánimo en el stream"},
-{w:"QUILLO",h:"Forma andaluza de llamar a alguien, tipo 'tío'"},
+{w:"QUIYO",h:"Forma andaluza de llamar a alguien, tipo 'tío'"},
 {w:"PAPEO",h:"Comida en general"},
 {w:"SALSEO",h:"Cotilleo o drama"},
 {w:"CLIP",h:"Momento gracioso del directo"},
@@ -140,34 +136,33 @@ const WORDS = [
 {w:"BUFF",h:"Cuando mejoran algo"},
 {w:"CLUTCH",h:"Jugada decisiva"},
 {w:"DIOH",h:"Exclamación tipo 'Dios' muy andaluza"},
-{w:"FLAMA",h:"Algo muy bueno o muy top, muy usado en streams"},
-{w:"FLIPAO",h:"Alguien que se sorprende o exagera mucho"},
+{w:"FLAMA",h:"Algo muy bueno o muy top"},
+{w:"FLIPAO",h:"Alguien que se sorprende mucho"},
 {w:"FLIPAR",h:"Quedarse loco con algo"},
-{w:"COHONES",h:"Exclamación andaluza tipo '¡con lo fuerte que es!'"},
-{w:"HOSTIA",h:"Exclamación típica de sorpresa o impacto"},
-{w:"ENPLAN",h:"Muletilla para explicar algo o matizarlo"},
-{w:"TOGUAPO",h:"Algo extremadamente bueno o bonito"},
-{w:"RANDOM",h:"Algo sin sentido o inesperado"},
-{w:"BROMA",h:"Cuando el chat se pasa de troll"},
-].filter(e=>e.w.length===5);
+{w:"COHONES",h:"Exclamación andaluza"},
+{w:"HOSTIA",h:"Sorpresa o impacto"},
+{w:"ENPLAN",h:"Muletilla"},
+{w:"TOGUAPO",h:"Algo muy bueno"},
+{w:"RANDOM",h:"Algo sin sentido"},
+{w:"BROMA",h:"Troleo"}
+];
 
-const ROWS=6,COLS=5;
-
-let secret,board,cur,gameOver,keyState;
+let secret,board,cur,gameOver,keyState,COLS;
 
 function init(){
 const entry=WORDS[Math.floor(Math.random()*WORDS.length)];
-secret=entry.w;
+secret=entry.w.toUpperCase();
+COLS=secret.length;
 
 document.getElementById('hint').textContent="Pista: "+entry.h;
+document.getElementById('msg').textContent="Adivina la palabra";
 
-board=Array.from({length:ROWS},()=>Array(COLS).fill(''));
+board=Array.from({length:6},()=>Array(COLS).fill(''));
 cur={row:0,col:0};
 gameOver=false;
 keyState={};
 
 document.getElementById('new-btn').style.display='none';
-document.getElementById('msg').textContent='Adivina la palabra de 5 letras';
 
 buildGrid();
 buildKeyboard();
@@ -177,7 +172,7 @@ function buildGrid(){
 const g=document.getElementById('grid');
 g.innerHTML='';
 
-for(let r=0;r<ROWS;r++){
+for(let r=0;r<6;r++){
 const row=document.createElement('div');
 row.className='row';
 row.id=`row-${r}`;
@@ -209,9 +204,8 @@ div.className='krow';
 
 row.forEach(k=>{
 const btn=document.createElement('button');
-btn.className='key'+((k==='↵'||k==='⌫')?' wide':'');
+btn.className='key';
 btn.textContent=k;
-btn.id='key-'+k;
 btn.onclick=()=>handleKey(k);
 div.appendChild(btn);
 });
@@ -227,66 +221,62 @@ if(k==='⌫'){
 if(cur.col>0){
 cur.col--;
 board[cur.row][cur.col]='';
-updateCell(cur.row,cur.col,'',false);
+updateCell(cur.row,cur.col,'');
 }
 return;
 }
 
 if(k==='↵'){
-submitRow();
+submit();
 return;
 }
 
 if(cur.col<COLS){
 board[cur.row][cur.col]=k;
-updateCell(cur.row,cur.col,k,true);
+updateCell(cur.row,cur.col,k);
 cur.col++;
 }
 }
 
-function updateCell(r,c,l,f){
-const cell=document.getElementById(`c-${r}-${c}`);
-cell.textContent=l;
-cell.className='cell'+(f?' filled':'');
+function updateCell(r,c,l){
+document.getElementById(`c-${r}-${c}`).textContent=l;
 }
 
-function submitRow(){
+function submit(){
 if(cur.col<COLS){shake();return;}
 
 const guess=board[cur.row].join('');
-const result=score(guess,secret);
 
-result.forEach((res,c)=>{
+const res=score(guess,secret);
+
+res.forEach((r,i)=>{
 setTimeout(()=>{
-const cell=document.getElementById(`c-${cur.row}-${c}`);
-cell.classList.add(res);
-updateKey(board[cur.row][c],res);
-},c*120);
+const cell=document.getElementById(`c-${cur.row}-${i}`);
+cell.classList.add(r);
+updateKey(board[cur.row][i],r);
+},i*120);
 });
 
 setTimeout(()=>{
 if(guess===secret){
-document.getElementById('msg').textContent='¡Has ganado!';
-gameOver=true;
-document.getElementById('new-btn').style.display='block';
-}else if(cur.row===ROWS-1){
-document.getElementById('msg').textContent='Era '+secret;
+document.getElementById('msg').textContent='¡Ganaste!';
 gameOver=true;
 document.getElementById('new-btn').style.display='block';
 }else{
-cur.row++;cur.col=0;
+cur.row++;
+cur.col=0;
 }
 },700);
 }
 
-function score(guess,secret){
+function score(g,s){
 const res=Array(COLS).fill('absent');
-const g=guess.split('');
-const s=secret.split('');
+const gg=g.split('');
+const ss=s.split('');
 const used=Array(COLS).fill(false);
 
 for(let i=0;i<COLS;i++){
-if(g[i]===s[i]){
+if(gg[i]===ss[i]){
 res[i]='correct';
 used[i]=true;
 }
@@ -294,9 +284,8 @@ used[i]=true;
 
 for(let i=0;i<COLS;i++){
 if(res[i]==='correct') continue;
-
 for(let j=0;j<COLS;j++){
-if(!used[j] && g[i]===s[j]){
+if(!used[j] && gg[i]===ss[j]){
 res[i]='present';
 used[j]=true;
 break;
@@ -308,18 +297,19 @@ return res;
 }
 
 function updateKey(l,state){
-const priority={correct:3,present:2,absent:1};
-if(!keyState[l]||priority[state]>priority[keyState[l]]){
-keyState[l]=state;
-const btn=document.getElementById('key-'+l);
-if(btn) btn.className='key '+state;
+const btn=document.querySelectorAll('.key');
+btn.forEach(b=>{
+if(b.textContent===l){
+b.classList.add(state);
 }
+});
 }
 
 function shake(){
-const row=document.getElementById('row-'+cur.row);
-row.classList.add('shake');
-setTimeout(()=>row.classList.remove('shake'),400);
+document.getElementById(`row-${cur.row}`).classList.add('shake');
+setTimeout(()=>{
+document.getElementById(`row-${cur.row}`).classList.remove('shake');
+},400);
 }
 
 document.addEventListener('keydown',e=>{
